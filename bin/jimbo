@@ -1,0 +1,319 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail -o noglob
+shopt -s lastpipe
+
+readonly app_name="${0##*/}"
+readonly app_path=$(realpath "${0}")
+readonly app_dir=$(dirname "${app_path}")
+
+readonly app_base_path=$(realpath "${app_dir}"/..)
+readonly app_plugins_path="${app_base_path}/plugins"
+
+main() {
+    local cmd
+
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -h | --help ) cmd='help' ;;
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
+    if [ -z "${cmd:-}" ]; then
+        if [ $# -eq 0 ]; then
+            app_error_missing_argument 'command. Try --help for more information.'
+        fi
+
+        cmd="${1}" && shift
+    fi
+
+    if ! app_commands_list | command grep -q "^${cmd}\$"; then
+        app_error_unknown_command "${cmd}"
+    fi
+
+    "app_command_${cmd}" "$@"
+}
+
+app_command_plugins() {
+    if [ $# -gt 0 ]; then
+        app_error_too_many_arguments 0
+    fi
+
+    app_plugins_list | xargs -n1 basename | sort
+}
+
+app_command_detect() {
+    if [ $# -gt 1 ]; then
+        app_error_too_many_arguments 1
+    fi
+
+    if [ $# -lt 1 ]; then
+        app_error_missing_argument 'path to site'
+    fi
+
+    local site_path="$(realpath $1)"
+
+    if [ ! -r "${site_path}" ]; then
+        app_error "Site directory not exists or not readable: ${site_path}"
+    fi
+
+    cd "${site_path}"
+
+    local plugin=''
+    local plugin_name=''
+    local exclude_paths=''
+    local include_paths=''
+    local database_name=''
+    local database_user=''
+    local database_password=''
+
+    app_detect_site_config
+
+    app_header_plugin
+
+    app_header_paths
+
+    app_header_database --show-password
+}
+
+app_command_backup() {
+    if [ $# -gt 2 ]; then
+        app_error_too_many_arguments 2
+    fi
+
+    if [ $# -lt 1 ]; then
+        app_error_missing_argument 'path to site'
+    fi
+
+    if [ $# -lt 2 ]; then
+        app_error_missing_argument 'path to backup file'
+    fi
+
+    local site_path="$(realpath $1)"
+    local backup_file="$(realpath $2)"
+
+    if [ ! -r "${site_path}" ]; then
+        app_error "Site directory not exists or not readable: ${site_path}"
+    fi
+
+    cd "${site_path}"
+
+    local plugin=''
+    local plugin_name=''
+    local exclude_paths=''
+    local include_paths=''
+    local database_name=''
+    local database_user=''
+    local database_password=''
+
+    app_detect_site_config
+
+    app_header_plugin
+
+    app_header_paths
+
+    app_header_database
+
+    app_header_backup
+
+    printf '\nProcessing: this may take a while...\n'
+
+    if [ -z "${plugin}" ]; then
+        app_zip "${backup_file}" .
+
+        app_header_result
+
+        exit 0
+    fi
+
+    app_zip "${backup_file}" . -x ${exclude_paths}
+
+    if [ -n "${include_paths}" ]; then
+        app_zip -u "${backup_file}" . -i ${include_paths}
+    fi
+
+    if [ -z "${database_name}" ]; then
+        app_header_result
+
+        exit 0
+    fi
+
+    local dump="$(mktemp --suffix '-dump.sql')"
+    app_dump_database > "${dump}" \
+        && app_zip -ju "${backup_file}" "${dump}"
+
+    rm --force "${dump}"
+
+    app_header_result
+}
+
+app_command_help() {
+    cat <<HELP
+${app_name}: simple backup tool for web sites (Joomla, Wordpress & etc.).
+
+$(app_usage '<command> [opts]')
+
+$(app_available_commands)
+HELP
+}
+
+app_zip() {
+    command zip -qr "-${COMPRESSION_LEVEL:-9}" "$@"
+}
+
+app_header_plugin() {
+    app_header 'Plugin'
+
+    echo "Name: ${plugin_name:-~}"
+    echo "Path: ${plugin:-~}"
+}
+
+app_header_paths() {
+    app_header 'Paths'
+
+    echo "Root:     ${site_path}"
+    echo "Excluded: ${exclude_paths:-~}"
+    echo "Included: ${include_paths:-~}"
+}
+
+app_header_database() {
+    app_header 'Database'
+
+    if ! [ "${1:-}" = '--show-password' ]; then
+        local database_password="$(app_repeat_str '*' ${#database_password})"
+    fi
+
+    echo "Name:     ${database_name:-~}"
+    echo "User:     ${database_user:-~}"
+    echo "Password: ${database_password:-~}"
+}
+
+app_header_backup() {
+    app_header 'Backup'
+
+    echo "File: ${backup_file:-~}"
+}
+
+app_header_result() {
+    app_header 'Result'
+
+    command ls -sh "${backup_file}" 2>/dev/null
+}
+
+app_header() {
+    printf "\n### %s\n\n" "${1}"
+}
+
+app_detect_site_config() {
+    plugin=''
+    plugin_name=''
+    exclude_paths=''
+    include_paths=''
+    database_name=''
+    database_user=''
+    database_password=''
+
+    local config=''
+
+    for plg in $(app_plugins_list); do
+        if config="$(${plg})"; then
+            plugin="${plg}" && break
+        fi
+    done
+
+    [ -z "${plugin}" ] && return 0
+
+    plugin_name="${plugin##*/}"
+
+    echo "${config}" | while IFS=': ' read -r key value; do
+        case "${key}" in
+            plugin_name       ) plugin_name="${value}" ;;
+            exclude_paths     ) exclude_paths="${value}" ;;
+            include_paths     ) include_paths="${value}" ;;
+            database_name     ) database_name="${value}" ;;
+            database_user     ) database_user="${value}" ;;
+            database_password ) database_password="${value}" ;;
+            * ) app_error "Invalid configuration key: ${key}." ;;
+        esac
+    done
+}
+
+app_dump_database() {
+    command mysqldump --quick --single-transaction -u "${database_user}" -p"${database_password}" "${database_name}"
+}
+
+app_commands_list() {
+    command sed -nEe 's/^app_command_([-a-z]+)\s*\(.*$/\1/p' "${app_path}"
+}
+
+app_plugins_list() {
+    command find "${app_plugins_path}" -maxdepth 1 -type f -executable
+}
+
+app_error_unknown_command() {
+    local message
+
+    printf -v message 'Unknown command: %s.\n\n%s' "${1}" "$(app_available_commands)"
+
+    app_error "${message}"
+}
+
+app_error_unknown_option() {
+    app_error "Unknown option: ${1}"
+}
+
+app_error_missing_argument() {
+    app_error "Missing argument${1:+: }${1:-}"
+}
+
+app_error_too_many_arguments() {
+    app_error "Too many arguments.${1:+ Expected: }${1:-}"
+}
+
+app_error() {
+    local exit_code=1
+
+    if [ "${1}" = '--exit' ]; then
+        exit_code="${2}"
+
+        if [[ "${exit_code}" -lt 1 || "${exit_code}" -gt 255 ]]; then
+            app_error "app_error(): invalid exit code: ${exit_code}" && return 1
+        fi
+
+        shift 2
+    fi
+
+    printf "${app_name}${app_name:+ }ERROR: %s\n" "$@" >&2
+
+    exit "${exit_code}"
+}
+
+app_available_commands() {
+    printf 'Available commands:\n\n'
+
+    for c in $(app_commands_list); do
+        printf '  %s\n' "${c}"
+    done
+}
+
+app_repeat_str() {
+    [[ $# -eq 0 ]] && return
+
+    local result=''
+    for (( i = 0; i < "${2:-1}"; i++ )); do
+        result="${result}${1}"
+    done
+
+    printf '%s' "${result}"
+}
+
+app_usage() {
+    echo "Usage: ${app_name} $@"
+}
+
+main "$@"

@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+grep -q 'JConfig' 'configuration.php' 2>/dev/null || exit 1
+
+cat <<CONFIG
+plugin_name: Joomla!
+exclude_paths: /cache/* /tmp/* /administrator/cache/*
+include_paths: */index.html
+CONFIG
+
+sed -n \
+    -e "s/^.*\\\$db[=[:space:]]\\+.*'\\(.*\\)'.*\$/database_name: \1/p" \
+    -e "s/^.*\\\$user[=[:space:]]\\+.*'\\(.*\\)'.*\$/database_user: \1/p" \
+    -e "s/^.*\\\$password[=[:space:]]\\+.*'\\(.*\\)'.*\$/database_password: \1/p" \
+    'configuration.php'

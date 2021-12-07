@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+! [ -f 'wp-config.php' ] && exit 1
+
+cat <<CONFIG
+plugin_name: WordPress
+exclude_paths: /wp-content/cache/*
+CONFIG
