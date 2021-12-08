@@ -56,11 +56,9 @@ app_command_detect() {
         app_error_missing_argument 'path to site'
     fi
 
-    local site_path="$(realpath $1)"
+    local site_path="$(realpath ${1})"
 
-    if [ ! -r "${site_path}" ]; then
-        app_error "Site directory not exists or not readable: ${site_path}"
-    fi
+    app_check_site_path "${site_path}"
 
     cd "${site_path}"
 
@@ -82,6 +80,19 @@ app_command_detect() {
 }
 
 app_command_backup() {
+    local verbose=false
+
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -v | --verbose ) verbose=true ;;
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
     if [ $# -gt 2 ]; then
         app_error_too_many_arguments 2
     fi
@@ -97,8 +108,10 @@ app_command_backup() {
     local site_path="$(realpath $1)"
     local backup_file="$(realpath $2)"
 
-    if [ ! -r "${site_path}" ]; then
-        app_error "Site directory not exists or not readable: ${site_path}"
+    app_check_site_path "${site_path}"
+
+    if [ -f "${backup_file}" ]; then
+        app_error "Backup file already exists: ${backup_file}"
     fi
 
     cd "${site_path}"
@@ -121,7 +134,7 @@ app_command_backup() {
 
     app_header_backup
 
-    printf '\nProcessing: this may take a while...\n'
+    printf '\nProcessing... This may take a while.\n'
 
     if [ -z "${plugin}" ]; then
         app_zip "${backup_file}" .
@@ -167,6 +180,12 @@ app_zip() {
 }
 
 app_header_plugin() {
+    if [[ "${verbose:-true}" == 'false' ]]; then
+        echo "Plugin: ${plugin_name:-default (zip)}"
+
+        return
+    fi
+
     app_header 'Plugin'
 
     echo "Name: ${plugin_name:-~}"
@@ -174,6 +193,10 @@ app_header_plugin() {
 }
 
 app_header_paths() {
+    if [[ "${verbose:-true}" == 'false' ]]; then
+        return
+    fi
+
     app_header 'Paths'
 
     echo "Root:     ${site_path}"
@@ -182,6 +205,10 @@ app_header_paths() {
 }
 
 app_header_database() {
+    if [[ "${verbose:-true}" == 'false' ]]; then
+        return
+    fi
+
     app_header 'Database'
 
     if ! [ "${1:-}" = '--show-password' ]; then
@@ -194,19 +221,33 @@ app_header_database() {
 }
 
 app_header_backup() {
+    if [[ "${verbose:-true}" == 'false' ]]; then
+        return
+    fi
+
     app_header 'Backup'
 
     echo "File: ${backup_file:-~}"
 }
 
 app_header_result() {
-    app_header 'Result'
+    if [[ "${verbose:-true}" == 'false' ]]; then
+        echo
+    else
+        app_header 'Result'
+    fi
 
     command ls -sh "${backup_file}" 2>/dev/null
 }
 
 app_header() {
     printf "\n### %s\n\n" "${1}"
+}
+
+app_check_site_path() {
+    if [ ! -r "${1}" ]; then
+        app_error "Site path not exists or not readable: ${1}"
+    fi
 }
 
 app_detect_site_config() {
