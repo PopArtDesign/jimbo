@@ -286,7 +286,6 @@ app_detect_site_config() {
 
 app_dump_database() {
     command mysqldump \
-        --quick \
         --single-transaction \
         --no-tablespaces \
         -u "${database_user}" \
