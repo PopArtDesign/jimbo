@@ -1,6 +1,6 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-grep -q 'JConfig' 'configuration.php' 2>/dev/null || exit 1
+grep 'JConfig' 'configuration.php' &>/dev/null || exit 1
 
 cat <<CONFIG
 plugin_name: Joomla!
