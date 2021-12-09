@@ -285,12 +285,19 @@ app_detect_site_config() {
 }
 
 app_dump_database() {
-    command mysqldump \
-        --single-transaction \
-        --no-tablespaces \
-        -u "${database_user}" \
-        -p"${database_password}" \
-        "${database_name}"
+    app_mysqldump --single-transaction --no-tablespaces "${database_name}"
+}
+
+app_mysqldump() {
+    command mysqldump --defaults-file=<(app_mysql_credentials 'mysqldump') "$@"
+}
+
+app_mysql_credentials() {
+    cat <<EOF
+[${1:-client}]
+user="${database_user}"
+password="${database_password}"
+EOF
 }
 
 app_commands_list() {
