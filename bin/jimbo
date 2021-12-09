@@ -165,6 +165,82 @@ app_command_backup() {
     app_header_result
 }
 
+app_command_db:dump() {
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
+    if [ $# -gt 1 ]; then
+        app_error_too_many_arguments 1
+    fi
+
+    if [ $# -lt 1 ]; then
+        app_error_missing_argument 'path to site'
+    fi
+
+    local site_path="$(realpath $1)"
+
+    app_check_site_path "${site_path}"
+
+    cd "${site_path}"
+
+    local plugin=''
+    local plugin_name=''
+    local exclude_paths=''
+    local include_paths=''
+    local database_name=''
+    local database_user=''
+    local database_password=''
+
+    app_detect_site_config
+
+    app_dump_database
+}
+
+app_command_db:cli() {
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
+    if [ $# -gt 1 ]; then
+        app_error_too_many_arguments 1
+    fi
+
+    if [ $# -lt 1 ]; then
+        app_error_missing_argument 'path to site'
+    fi
+
+    local site_path="$(realpath $1)"
+
+    app_check_site_path "${site_path}"
+
+    cd "${site_path}"
+
+    local plugin=''
+    local plugin_name=''
+    local exclude_paths=''
+    local include_paths=''
+    local database_name=''
+    local database_user=''
+    local database_password=''
+
+    app_detect_site_config
+
+    app_mysql "${database_name}"
+}
+
 app_command_help() {
     cat <<HELP
 ${app_name}: simple backup tool for web sites (Joomla, Wordpress & etc.).
@@ -292,6 +368,10 @@ app_mysqldump() {
     command mysqldump --defaults-file=<(app_mysql_credentials 'mysqldump') "$@"
 }
 
+app_mysql() {
+    command mysql --defaults-file=<(app_mysql_credentials 'client') "$@"
+}
+
 app_mysql_credentials() {
     cat <<EOF
 [${1:-client}]
@@ -301,7 +381,7 @@ EOF
 }
 
 app_commands_list() {
-    command sed -nEe 's/^app_command_([-a-z]+)\s*\(.*$/\1/p' "${app_path}"
+    command sed -nEe 's/^app_command_([-a-z:]+)\s*\(.*$/\1/p' "${app_path}"
 }
 
 app_plugins_list() {
