@@ -40,6 +40,16 @@ main() {
 }
 
 app_command_plugins() {
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
     if [ $# -gt 0 ]; then
         app_error_too_many_arguments 0
     fi
@@ -48,6 +58,16 @@ app_command_plugins() {
 }
 
 app_command_detect() {
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
     if [ $# -gt 1 ]; then
         app_error_too_many_arguments 1
     fi
