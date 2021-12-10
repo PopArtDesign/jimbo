@@ -79,7 +79,7 @@ app_command_detect() {
 
     local site_path="$(realpath ${1})"
 
-    app_check_site_path "${site_path}"
+    app_check_site_path_exists_and_readable "${site_path}"
 
     cd "${site_path}"
 
@@ -129,7 +129,7 @@ app_command_backup() {
     local site_path="$(realpath $1)"
     local backup_file="$(realpath $2)"
 
-    app_check_site_path "${site_path}"
+    app_check_site_path_exists_and_readable "${site_path}"
 
     if [ -f "${backup_file}" ]; then
         app_error "Backup file already exists: ${backup_file}"
@@ -177,7 +177,8 @@ app_command_backup() {
         exit 0
     fi
 
-    local dump="$(mktemp --suffix '-dump.sql')"
+    local dump="$(app_database_create_dump_file)"
+
     app_dump_database > "${dump}" \
         && app_zip -ju "${backup_file}" "${dump}"
 
@@ -227,7 +228,7 @@ app_command_restore() {
 
     cd "${site_path}"
 
-    local dump="$(app_find_database_dump_file)"
+    local dump="$(app_database_find_dump_file)"
 
     if [[ -z "${dump}" ]]; then
         exit 0
@@ -275,7 +276,7 @@ app_command_db:dump() {
 
     local site_path="$(realpath $1)"
 
-    app_check_site_path "${site_path}"
+    app_check_site_path_exists_and_readable "${site_path}"
 
     cd "${site_path}"
 
@@ -317,7 +318,7 @@ app_command_db:cli() {
 
     local site_path="$(realpath $1)"
 
-    app_check_site_path "${site_path}"
+    app_check_site_path_exists_and_readable "${site_path}"
 
     cd "${site_path}"
 
@@ -421,7 +422,7 @@ app_header() {
     printf "\n### %s\n\n" "${1}"
 }
 
-app_check_site_path() {
+app_check_site_path_exists_and_readable() {
     if [ ! -r "${1}" ]; then
         app_error "Site path not exists or not readable: ${1}"
     fi
@@ -434,7 +435,7 @@ app_check_site_path_is_empty_and_writable() {
         app_error "Site path is not exists or not a directory: ${site_path}"
     fi
 
-    if ! [[ -z "$(ls -A ${site_path})" ]]; then
+    if ! [[ -z "$(command ls -A ${site_path})" ]]; then
         app_error "Site path is not empty: ${site_path}"
     fi
 
@@ -497,7 +498,11 @@ password="${database_password}"
 EOF
 }
 
-app_find_database_dump_file()
+app_database_create_dump_file() {
+    mktemp --suffix "${app_database_dump_file_suffix}"
+}
+
+app_database_find_dump_file()
 {
     local path="${1:-${PWD}}"
     local pattern="*${app_database_dump_file_suffix}"
