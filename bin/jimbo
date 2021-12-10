@@ -220,6 +220,10 @@ app_command_db:dump() {
 
     app_detect_site_config
 
+    if [[ -z "${database_name}" ]]; then
+        app_error 'Database not detected'
+    fi
+
     app_dump_database
 }
 
@@ -257,6 +261,10 @@ app_command_db:cli() {
     local database_password=''
 
     app_detect_site_config
+
+    if [[ -z "${database_name}" ]]; then
+        app_error 'Database not detected'
+    fi
 
     app_mysql "${database_name}"
 }
