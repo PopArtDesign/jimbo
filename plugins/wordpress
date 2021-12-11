@@ -6,3 +6,9 @@ cat <<CONFIG
 plugin_name: WordPress
 exclude_paths: /wp-content/cache/*
 CONFIG
+
+sed -nE \
+    -e "s/^.*DB_NAME.*'(.*)'.*$/database_name: \1/p" \
+    -e "s/^.*DB_USER.*'(.*)'.*$/database_user: \1/p" \
+    -e "s/^.*DB_PASSWORD.*'(.*)'.*$/database_password: \1/p" \
+    'wp-config.php'
