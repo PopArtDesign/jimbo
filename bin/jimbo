@@ -481,8 +481,8 @@ app_load_config() {
     while IFS=': ' read -r key value; do
         case "${key}" in
             plugin_name       ) _[plugin_name]="${value}" ;;
-            exclude_paths     ) _[exclude_paths]+=" ${value}" ;;
-            include_paths     ) _[include_paths]+=" ${value}" ;;
+            exclude_paths     ) _[exclude_paths]+="${_[exclude_paths]:+ }${value}" ;;
+            include_paths     ) _[include_paths]+="${_[include_paths]:+ }${value}" ;;
             database_name     ) _[database_name]="${value}" ;;
             database_user     ) _[database_user]="${value}" ;;
             database_password ) _[database_password]="${value}" ;;
