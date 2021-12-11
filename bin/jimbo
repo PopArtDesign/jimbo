@@ -141,21 +141,19 @@ app_command_backup() {
 
     printf '\nProcessing... This may take a while.\n'
 
-    if [ -z "${site_config[plugin]}" ]; then
-        app_zip "${backup_file}" .
+    if [[ -z "${site_config[exclude_paths]:-}${site_config[include_paths]:-}" ]]; then
+        app_zip -u "${backup_file}" .
+    else
+        if [[ -n "${site_config[include_paths]:-}" ]]; then
+            app_zip -u "${backup_file}" . -i ${site_config[include_paths]}
+        fi
 
-        app_header_result
-
-        exit 0
+        if [[ -n "${site_config[exclude_paths]:-}" ]]; then
+            app_zip -u "${backup_file}" . -x ${site_config[exclude_paths]}
+        fi
     fi
 
-    app_zip "${backup_file}" . -x ${site_config[exclude_paths]}
-
-    if [ -n "${site_config[include_paths]}" ]; then
-        app_zip -u "${backup_file}" . -i ${site_config[include_paths]}
-    fi
-
-    if [ -z "${site_config[database_name]}" ]; then
+    if [[ -z "${site_config[database_name]:-}" ]]; then
         app_header_result
 
         exit 0
