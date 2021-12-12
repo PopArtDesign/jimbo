@@ -11,7 +11,7 @@ ${app_name}: simple backup tool for web sites (Joomla, Wordpress & etc.).
 
 $(app_usage '<command> [opts]')
 
-$(app_available_commands)
+$(app:command:available_commands)
 HELP
 }
 
