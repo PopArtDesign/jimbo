@@ -4,7 +4,7 @@ set -eu -o pipefail
 shopt -s lastpipe nullglob
 
 source "${app_libs_path}/error.bash"
-source "${app_base_path}/utils.bash"
+source "${app_libs_path}/plugin.bash"
 
 main() {
     while [[ $# -gt 0 ]]; do
@@ -21,7 +21,7 @@ main() {
         app:error:too_many_arguments 0
     fi
 
-    app_plugins_list | xargs -n1 basename | sort
+    app:plugin:plugins_list | command xargs -n1 basename
 }
 
 main "$@"

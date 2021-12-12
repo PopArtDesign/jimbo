@@ -107,11 +107,7 @@ app_detect_site_config() {
     local plugin=''
     local config=''
 
-    for plg in $(app_plugins_list); do
-        if config="$(${plg})"; then
-            plugin="${plg}" && break
-        fi
-    done
+    app:plugin:detect_plugin "${site_path}" 'plugin' 'config'
 
     [[ -z "${plugin}" ]] && return 0
 
@@ -135,7 +131,7 @@ app_load_site_config_file()
 {
     local -n _="${1}"
 
-    local config_file="$(command find ${2:-${PWD}} -maxdepth 1 -type f -name ${app_config_file_pattern})"
+    local config_file="$(command find "${2:-${PWD}}" -maxdepth 1 -type f -name "${app_config_file_pattern}")"
 
     if [[ -z "${config_file}" ]]; then
         return
@@ -186,10 +182,6 @@ app_mysql_credentials() {
 user="${site_config[database_user]}"
 password="${site_config[database_password]}"
 EOF
-}
-
-app_plugins_list() {
-    command find "${app_plugins_path}" -maxdepth 1 -type f -executable
 }
 
 app_repeat_str() {
