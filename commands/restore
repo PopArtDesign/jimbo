@@ -1,43 +1,44 @@
 #!/usr/bin/env bash
 
-set -eu -o pipefail noglob
+set -eu -o pipefail
 shopt -s lastpipe nullglob
 
+source "${app_libs_path}/error.bash"
 source "${app_base_path}/utils.bash"
 
 main() {
     local verbose=false
 
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "${1}" in
             -v | --verbose ) verbose=true ;;
             -- ) shift && break ;;
-            -* ) app_error_unknown_option "${1}" ;;
+            -* ) app:error:unknown_option "${1}" ;;
             * ) break
         esac
 
         shift
     done
 
-    if [ $# -gt 2 ]; then
-        app_error_too_many_arguments 2
+    if [[ $# -gt 2 ]]; then
+        app:error:too_many_arguments 2
     fi
 
-    if [ $# -lt 1 ]; then
-        app_error_missing_argument 'path to site'
+    if [[ $# -lt 1 ]]; then
+        app:error:missing_argument 'path to site'
     fi
 
-    if [ $# -lt 2 ]; then
-        app_error_missing_argument 'path to backup file'
+    if [[ $# -lt 2 ]]; then
+        app:error:missing_argument 'path to backup file'
     fi
 
-    local site_path="$(realpath ${1})"
-    local backup_file="$(realpath ${2})"
+    local site_path="$(realpath "${1}")"
+    local backup_file="$(realpath "${2}")"
 
     app_check_site_path_is_empty_and_writable "${site_path}"
 
     if ! [[ -f "${backup_file}" && -r "${backup_file}" ]]; then
-        app_error "Backup file not exists or not readable: ${backup_file}"
+        app:error:error "Backup file not exists or not readable: ${backup_file}"
     fi
 
     printf '\nProcessing... This may take a while.\n'
@@ -46,17 +47,17 @@ main() {
 
     cd "${site_path}"
 
-    local dump="$(command find ${path} -maxdepth 1 -type f -name *${app_database_dump_file_suffix})"
+    local dump="$(command find "${path}" -maxdepth 1 -type f -name "*${app_database_dump_file_suffix}")"
 
     if [[ -z "${dump}" ]]; then
         exit 0
     fi
 
-    if [[ "$(wc -l <<<${dump})" -gt 1 ]]; then
-        app_error 'More than one database dump files present'
+    if [[ "$(wc -l <<<"${dump}")" -gt 1 ]]; then
+        app:error:error 'More than one database dump files present'
     fi
 
-    dump="$(realpath ${dump})"
+    dump="$(realpath "${dump}")"
 
     read -r -p "Database dump found: ${dump##*/}. Load? [y/n] "
 

@@ -1,30 +1,31 @@
 #!/usr/bin/env bash
 
-set -eu -o pipefail -o noglob
-shopt -s lastpipe
+set -eu -o pipefail
+shopt -s lastpipe nullglob
 
+source "${app_libs_path}/error.bash"
 source "${app_base_path}/utils.bash"
 
 main() {
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "${1}" in
             -- ) shift && break ;;
-            -* ) app_error_unknown_option "${1}" ;;
+            -* ) app:error:unknown_option "${1}" ;;
             * ) break
         esac
 
         shift
     done
 
-    if [ $# -gt 1 ]; then
-        app_error_too_many_arguments 1
+    if [[ $# -gt 1 ]]; then
+        app:error:too_many_arguments 1
     fi
 
-    if [ $# -lt 1 ]; then
-        app_error_missing_argument 'path to site'
+    if [[ $# -lt 1 ]]; then
+        app:error:missing_argument 'path to site'
     fi
 
-    local site_path="$(realpath ${1})"
+    local site_path="$(realpath "${1}")"
 
     app_check_site_path_exists_and_readable "${site_path}"
 

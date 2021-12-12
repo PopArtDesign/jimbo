@@ -3,6 +3,7 @@
 set -eu -o pipefail -o noglob
 shopt -s lastpipe nullglob
 
+source "${app_libs_path}/error.bash"
 source "${app_base_path}/utils.bash"
 
 main() {
@@ -12,7 +13,7 @@ main() {
         case "${1}" in
             -v | --verbose ) verbose=true ;;
             -- ) shift && break ;;
-            -* ) app_error_unknown_option "${1}" ;;
+            -* ) app:error:unknown_option "${1}" ;;
             * ) break
         esac
 
@@ -20,15 +21,15 @@ main() {
     done
 
     if [ $# -gt 2 ]; then
-        app_error_too_many_arguments 2
+        app:error:too_many_arguments 2
     fi
 
     if [ $# -lt 1 ]; then
-        app_error_missing_argument 'path to site'
+        app:error:missing_argument 'path to site'
     fi
 
     if [ $# -lt 2 ]; then
-        app_error_missing_argument 'path to backup file'
+        app:error:missing_argument 'path to backup file'
     fi
 
     local site_path="$(realpath $1)"
@@ -37,7 +38,7 @@ main() {
     app_check_site_path_exists_and_readable "${site_path}"
 
     if [ -f "${backup_file}" ]; then
-        app_error "Backup file already exists: ${backup_file}"
+        app:error:error "Backup file already exists: ${backup_file}"
     fi
 
     cd "${site_path}"
