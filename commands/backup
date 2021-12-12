@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu -o pipefail noglob
+set -eu -o pipefail -o noglob
 shopt -s lastpipe nullglob
 
 source "${app_base_path}/utils.bash"
