@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail noglob
+shopt -s lastpipe nullglob
+
+source "${app_base_path}/utils.bash"
+
+main() {
+    local verbose=false
+
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -v | --verbose ) verbose=true ;;
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
+    if [ $# -gt 2 ]; then
+        app_error_too_many_arguments 2
+    fi
+
+    if [ $# -lt 1 ]; then
+        app_error_missing_argument 'path to site'
+    fi
+
+    if [ $# -lt 2 ]; then
+        app_error_missing_argument 'path to backup file'
+    fi
+
+    local site_path="$(realpath ${1})"
+    local backup_file="$(realpath ${2})"
+
+    app_check_site_path_is_empty_and_writable "${site_path}"
+
+    if ! [[ -f "${backup_file}" && -r "${backup_file}" ]]; then
+        app_error "Backup file not exists or not readable: ${backup_file}"
+    fi
+
+    printf '\nProcessing... This may take a while.\n'
+
+    app_unzip -d "${site_path}" "${backup_file}"
+
+    cd "${site_path}"
+
+    local dump="$(command find ${path} -maxdepth 1 -type f -name *${app_database_dump_file_suffix})"
+
+    if [[ -z "${dump}" ]]; then
+        exit 0
+    fi
+
+    if [[ "$(wc -l <<<${dump})" -gt 1 ]]; then
+        app_error 'More than one database dump files present'
+    fi
+
+    dump="$(realpath ${dump})"
+
+    read -r -p "Database dump found: ${dump##*/}. Load? [y/n] "
+
+    if [[ "${REPLY}" != 'y' ]]; then
+        exit 0
+    fi
+
+    local -A site_config
+
+    app_detect_site_config 'site_config'
+
+    app_mysql < "${dump}"
+
+    rm --force "${dump}"
+}
+
+main "$@"

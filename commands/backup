@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail noglob
+shopt -s lastpipe nullglob
+
+source "${app_base_path}/utils.bash"
+
+main() {
+    local verbose=false
+
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -v | --verbose ) verbose=true ;;
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
+    if [ $# -gt 2 ]; then
+        app_error_too_many_arguments 2
+    fi
+
+    if [ $# -lt 1 ]; then
+        app_error_missing_argument 'path to site'
+    fi
+
+    if [ $# -lt 2 ]; then
+        app_error_missing_argument 'path to backup file'
+    fi
+
+    local site_path="$(realpath $1)"
+    local backup_file="$(realpath $2)"
+
+    app_check_site_path_exists_and_readable "${site_path}"
+
+    if [ -f "${backup_file}" ]; then
+        app_error "Backup file already exists: ${backup_file}"
+    fi
+
+    cd "${site_path}"
+
+    local -A site_config
+
+    app_detect_site_config 'site_config'
+
+    app_header_plugin 'site_config'
+    app_header_paths 'site_config'
+    app_header_database 'site_config'
+    app_header_backup
+
+    printf '\nProcessing... This may take a while.\n'
+
+    if [[ -z "${site_config[exclude_paths]:-}${site_config[include_paths]:-}" ]]; then
+        app_zip -u "${backup_file}" .
+    else
+        if [[ -n "${site_config[include_paths]:-}" ]]; then
+            app_zip -u "${backup_file}" . -i ${site_config[include_paths]}
+        fi
+
+        if [[ -n "${site_config[exclude_paths]:-}" ]]; then
+            app_zip -u "${backup_file}" . -x ${site_config[exclude_paths]}
+        fi
+    fi
+
+    if [[ -z "${site_config[database_name]:-}" ]]; then
+        app_header_result
+
+        exit 0
+    fi
+
+    local dump="$(mktemp --suffix ${app_database_dump_file_suffix})"
+
+    app_dump_database > "${dump}" \
+        && app_zip -ju "${backup_file}" "${dump}"
+
+    rm --force "${dump}"
+
+    app_header_result
+}
+
+main "$@"

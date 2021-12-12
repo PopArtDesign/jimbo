@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+shopt -s lastpipe nullglob
+
+source "${app_base_path}/utils.bash"
+
+main() {
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
+    if [ $# -gt 0 ]; then
+        app_error_too_many_arguments 0
+    fi
+
+    app_plugins_list | xargs -n1 basename | sort
+}
+
+main "$@"

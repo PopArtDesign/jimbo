@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+shopt -s lastpipe nullglob
+
+source "${app_base_path}/utils.bash"
+
+main() {
+    while [ $# -gt 0 ]; do
+        case "${1}" in
+            -- ) shift && break ;;
+            -* ) app_error_unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
+    if [ $# -gt 1 ]; then
+        app_error_too_many_arguments 1
+    fi
+
+    if [ $# -lt 1 ]; then
+        app_error_missing_argument 'path to site'
+    fi
+
+    local site_path="$(realpath ${1})"
+
+    app_check_site_path_exists_and_readable "${site_path}"
+
+    cd "${site_path}"
+
+    local -A site_config
+
+    app_detect_site_config 'site_config'
+
+    if [[ -z "${site_config[database_name]}" ]]; then
+        app_error 'Database not detected'
+    fi
+
+    app_dump_database
+}
+
+main "$@"

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+shopt -s lastpipe nullglob
+
+source "${app_base_path}/utils.bash"
+
+main() {
+    cat <<HELP
+${app_name}: simple backup tool for web sites (Joomla, Wordpress & etc.).
+
+$(app_usage '<command> [opts]')
+
+$(app_available_commands)
+HELP
+}
+
+main "$@"
