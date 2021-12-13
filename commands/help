@@ -3,6 +3,7 @@
 set -eu -o pipefail
 shopt -s lastpipe nullglob
 
+source "${app_libs_path}/command.bash"
 source "${app_base_path}/utils.bash"
 
 main() {

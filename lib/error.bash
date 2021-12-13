@@ -1,11 +1,3 @@
-app:error:unknown_command() {
-    local message
-
-    printf -v message 'Unknown command: %s.\n\n%s' "${1}" "$(app:command:available_commands)"
-
-    app:error:error "${message}"
-}
-
 app:error:unknown_option() {
     app:error:error "Unknown option: ${1}"
 }

@@ -4,7 +4,10 @@ set -eu -o pipefail -o noglob
 shopt -s lastpipe nullglob
 
 source "${app_libs_path}/error.bash"
+source "${app_libs_path}/info.bash"
 source "${app_libs_path}/plugin.bash"
+source "${app_libs_path}/site.bash"
+source "${app_libs_path}/util.bash"
 source "${app_base_path}/utils.bash"
 
 main() {
@@ -36,24 +39,24 @@ main() {
     local site_path="$(realpath $1)"
     local backup_file="$(realpath $2)"
 
-    app_check_site_path_exists_and_readable "${site_path}"
+    app::site::check_site_path_exists_and_readable "${site_path}"
 
     if [ -f "${backup_file}" ]; then
         app:error:error "Backup file already exists: ${backup_file}"
     fi
 
-    cd "${site_path}"
+    local -A site_config=()
 
-    local -A site_config
+    app::site::detect_site_config "${site_path}" 'site_config'
 
-    app_detect_site_config 'site_config'
-
-    app_header_plugin 'site_config'
-    app_header_paths 'site_config'
-    app_header_database 'site_config'
-    app_header_backup
+    app::info::plugin   'site_config'
+    app::info::site     'site_config'
+    app::info::database 'site_config'
+    app::info::backup
 
     printf '\nProcessing... This may take a while.\n'
+
+    cd "${site_path}"
 
     if [[ -z "${site_config[exclude_paths]:-}${site_config[include_paths]:-}" ]]; then
         app_zip -u "${backup_file}" .
@@ -68,7 +71,7 @@ main() {
     fi
 
     if [[ -z "${site_config[database_name]:-}" ]]; then
-        app_header_result
+        app::info::result
 
         exit 0
     fi
@@ -80,7 +83,7 @@ main() {
 
     rm --force "${dump}"
 
-    app_header_result
+    app::info::result
 }
 
 main "$@"

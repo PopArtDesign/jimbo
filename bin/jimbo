@@ -44,10 +44,18 @@ main() {
     local executable="$(app:command:find_executable "${cmd}")"
 
     if ! [[ -f "${executable}" ]]; then
-        app:error:unknown_command "${cmd}"
+        app_unknown_command "${cmd}"
     fi
 
     exec "${executable}" "$@"
+}
+
+app_unknown_command() {
+    local message
+
+    printf -v message 'Unknown command: %s.\n\n%s' "${1}" "$(app:command:available_commands)"
+
+    app:error:error "${message}"
 }
 
 main "$@"
