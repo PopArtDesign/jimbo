@@ -1,3 +1,7 @@
+app::util::usage() {
+    echo "Usage: ${app_name} $*"
+}
+
 app::util::repeat_str() {
     [[ $# -eq 0 ]] && return
 

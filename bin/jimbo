@@ -17,7 +17,6 @@ declare -rx app_config_file_pattern='*.jimbo.conf'
 
 source "${app_libs_path}/command.bash"
 source "${app_libs_path}/error.bash"
-source "${app_base_path}/utils.bash"
 
 main() {
     local cmd
@@ -26,7 +25,7 @@ main() {
         case "${1}" in
             -h | --help ) cmd='help' ;;
             -- ) shift && break ;;
-            -* ) app:error:unknown_option "${1}" ;;
+            -* ) app::error::unknown_option "${1}" ;;
             * ) break
         esac
 
@@ -35,13 +34,13 @@ main() {
 
     if [[ -z "${cmd:-}" ]]; then
         if [ $# -eq 0 ]; then
-            app:error:missing_argument 'command. Try --help for more information.'
+            app::error::missing_argument 'command. Try --help for more information.'
         fi
 
         cmd="${1}" && shift
     fi
 
-    local executable="$(app:command:find_executable "${cmd}")"
+    local executable="$(app::command::find_executable "${cmd}")"
 
     if ! [[ -f "${executable}" ]]; then
         app_unknown_command "${cmd}"
@@ -53,9 +52,9 @@ main() {
 app_unknown_command() {
     local message
 
-    printf -v message 'Unknown command: %s.\n\n%s' "${1}" "$(app:command:available_commands)"
+    printf -v message 'Unknown command: %s.\n\n%s' "${1}" "$(app::command::available_commands)"
 
-    app:error:error "${message}"
+    app::error::error "${message}"
 }
 
 main "$@"

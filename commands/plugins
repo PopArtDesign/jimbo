@@ -10,7 +10,7 @@ main() {
     while [[ $# -gt 0 ]]; do
         case "${1}" in
             -- ) shift && break ;;
-            -* ) app:error:unknown_option "${1}" ;;
+            -* ) app::error::unknown_option "${1}" ;;
             * ) break
         esac
 
@@ -18,10 +18,10 @@ main() {
     done
 
     if [[ $# -gt 0 ]]; then
-        app:error:too_many_arguments 0
+        app::error::too_many_arguments 0
     fi
 
-    app:plugin:plugins_list | command xargs -n1 basename
+    app::plugin::plugins_list | command xargs -n1 basename
 }
 
 main "$@"

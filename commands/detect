@@ -7,13 +7,12 @@ source "${app_libs_path}/error.bash"
 source "${app_libs_path}/site.bash"
 source "${app_libs_path}/plugin.bash"
 source "${app_libs_path}/info.bash"
-source "${app_base_path}/utils.bash"
 
 main() {
     while [[ $# -gt 0 ]]; do
         case "${1}" in
             -- ) shift && break ;;
-            -* ) app:error:unknown_option "${1}" ;;
+            -* ) app::error::unknown_option "${1}" ;;
             * ) break
         esac
 
@@ -21,11 +20,11 @@ main() {
     done
 
     if [[ $# -gt 1 ]]; then
-        app:error:too_many_arguments 1
+        app::error::too_many_arguments 1
     fi
 
     if [[ $# -lt 1 ]]; then
-        app:error:missing_argument 'path to site'
+        app::error::missing_argument 'path to site'
     fi
 
     local site_path="$(realpath "${1}")"
@@ -34,7 +33,7 @@ main() {
 
     local -A site_config=()
 
-    app::site::detect_site_config "${site_path}" 'site_config'
+    app::site::detect_site_config "${site_path}"
 
     app::info::plugin   'site_config'
     app::info::site     'site_config'

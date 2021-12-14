@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
-set -eu -o pipefail -o noglob
+set -eu -o pipefail
 shopt -s lastpipe nullglob
 
+source "${app_libs_path}/archive.bash"
+source "${app_libs_path}/database.bash"
 source "${app_libs_path}/error.bash"
 source "${app_libs_path}/info.bash"
 source "${app_libs_path}/plugin.bash"
 source "${app_libs_path}/site.bash"
 source "${app_libs_path}/util.bash"
-source "${app_base_path}/utils.bash"
 
 main() {
     local verbose=false
@@ -17,7 +18,7 @@ main() {
         case "${1}" in
             -v | --verbose ) verbose=true ;;
             -- ) shift && break ;;
-            -* ) app:error:unknown_option "${1}" ;;
+            -* ) app::error::unknown_option "${1}" ;;
             * ) break
         esac
 
@@ -25,15 +26,15 @@ main() {
     done
 
     if [ $# -gt 2 ]; then
-        app:error:too_many_arguments 2
+        app::error::too_many_arguments 2
     fi
 
     if [ $# -lt 1 ]; then
-        app:error:missing_argument 'path to site'
+        app::error::missing_argument 'path to site'
     fi
 
     if [ $# -lt 2 ]; then
-        app:error:missing_argument 'path to backup file'
+        app::error::missing_argument 'path to backup file'
     fi
 
     local site_path="$(realpath $1)"
@@ -47,7 +48,7 @@ main() {
 
     local -A site_config=()
 
-    app::site::detect_site_config "${site_path}" 'site_config'
+    app::site::detect_site_config "${site_path}"
 
     app::info::plugin   'site_config'
     app::info::site     'site_config'
@@ -58,17 +59,21 @@ main() {
 
     cd "${site_path}"
 
+    set -o noglob
+
     if [[ -z "${site_config[exclude_paths]:-}${site_config[include_paths]:-}" ]]; then
-        app_zip -u "${backup_file}" .
+        app::archive::zip -u "${backup_file}" .
     else
         if [[ -n "${site_config[include_paths]:-}" ]]; then
-            app_zip -u "${backup_file}" . -i ${site_config[include_paths]}
+            app::archive::zip -u "${backup_file}" . -i ${site_config[include_paths]}
         fi
 
         if [[ -n "${site_config[exclude_paths]:-}" ]]; then
-            app_zip -u "${backup_file}" . -x ${site_config[exclude_paths]}
+            app::archive::zip -u "${backup_file}" . -x ${site_config[exclude_paths]}
         fi
     fi
+
+    set +o noglob
 
     if [[ -z "${site_config[database_name]:-}" ]]; then
         app::info::result
@@ -76,10 +81,10 @@ main() {
         exit 0
     fi
 
-    local dump="$(mktemp --suffix ${app_database_dump_file_suffix})"
+    local dump="$(mktemp --suffix "${app_database_dump_file_suffix}")"
 
-    app_dump_database > "${dump}" \
-        && app_zip -ju "${backup_file}" "${dump}"
+    app::database::dump > "${dump}" \
+        && app::archive::zip -ju "${backup_file}" "${dump}"
 
     rm --force "${dump}"
 
