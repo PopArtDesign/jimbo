@@ -35,7 +35,7 @@ app::site::detect_site_config() {
     _site_config[plugin_name]="${plugin##*/}"
     _site_config[root]="${site_path}"
 
-    app::site::load_site_config "${2}" <<<"${config}"
+    app::site::load_site_config "${2}" "${plugin##*/}" <<<"${config}"
 
     app::site::load_site_config_file "${site_path}" 'site_config'
 }
@@ -77,11 +77,12 @@ app::site::load_site_config_file()
 
     _site_config[config_file]="${config_file}"
 
-    app::site::load_site_config "${2}" < "${config_file}"
+    app::site::load_site_config "${2}" "${config_file##*/}" < "${config_file}"
 }
 
 app::site::load_site_config() {
     local -n _site_config="${1}"
+    local src="${2}"
 
     while IFS=': ' read -r key value; do
         case "${key}" in
@@ -104,7 +105,7 @@ app::site::load_site_config() {
                 _site_config[database_password]="${value}"
                 ;;
             * )
-                app:error:error "Invalid configuration key: ${key}."
+                app:error:error "${src}: invalid configuration key: ${key}"
                 ;;
         esac
     done
