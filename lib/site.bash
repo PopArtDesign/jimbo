@@ -1,3 +1,6 @@
+app::use 'error'
+app::use 'plugin'
+
 app::site::check_site_path_exists_and_readable() {
     if [ ! -r "${1}" ]; then
         app::error::error "Site path not exists or not readable: ${1}"

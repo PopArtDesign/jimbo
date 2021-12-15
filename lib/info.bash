@@ -1,3 +1,5 @@
+app::use 'util'
+
 app::info::plugin() {
     local -n _="${1:-site_config}"
 

@@ -3,11 +3,12 @@
 set -eu -o pipefail
 shopt -s lastpipe nullglob
 
-source "${app_libs_path}/archive.bash"
-source "${app_libs_path}/database.bash"
-source "${app_libs_path}/error.bash"
-source "${app_libs_path}/plugin.bash"
-source "${app_libs_path}/site.bash"
+source "${app_libs_loader}"
+
+app::use 'archive'
+app::use 'database'
+app::use 'error'
+app::use 'site'
 
 main() {
     local verbose=false

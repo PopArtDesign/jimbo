@@ -3,8 +3,10 @@
 set -eu -o pipefail
 shopt -s lastpipe nullglob
 
-source "${app_libs_path}/command.bash"
-source "${app_libs_path}/util.bash"
+source "${app_libs_loader}"
+
+app::use 'command'
+app::use 'util'
 
 main() {
     cat <<HELP
