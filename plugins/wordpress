@@ -4,7 +4,7 @@
 
 cat <<CONFIG
 plugin_name: WordPress
-exclude_paths: /wp-content/cache/*
+exclude: /wp-content/cache/*
 CONFIG
 
 sed -nE \

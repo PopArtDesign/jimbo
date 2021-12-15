@@ -5,17 +5,13 @@ shopt -s lastpipe nullglob
 
 source "${app_libs_loader}"
 
-app::use 'archive'
 app::use 'database'
 app::use 'error'
 app::use 'site'
 
 main() {
-    local verbose=false
-
     while [[ $# -gt 0 ]]; do
         case "${1}" in
-            -v | --verbose ) verbose=true ;;
             -- ) shift && break ;;
             -* ) app::error::unknown_option "${1}" ;;
             * ) break
@@ -47,35 +43,44 @@ main() {
 
     printf '\nProcessing... This may take a while.\n'
 
-    app::archive::unzip -d "${site_path}" "${backup_file}"
+    app_restore_site_files
 
-    cd "${site_path}"
-
-    local dump="$(command find "${path}" -maxdepth 1 -type f -name "*${app_database_dump_file_suffix}")"
-
-    if [[ -z "${dump}" ]]; then
-        exit 0
-    fi
-
-    if [[ "$(wc -l <<<"${dump}")" -gt 1 ]]; then
-        app::error::error 'More than one database dump files present'
-    fi
-
-    dump="$(realpath "${dump}")"
-
-    read -r -p "Database dump found: ${dump##*/}. Load? [y/n] "
-
-    if [[ "${REPLY}" != 'y' ]]; then
-        exit 0
-    fi
-
-    local -A site_config
+    local -A site_config=(
+        [backup_file]="${backup_file}"
+    )
 
     app::site::detect_site_config "${site_path}"
 
+    app_restore_site_database
+
+    printf '\nDone: %s\n' "${site_config[root]}"
+}
+
+app_restore_site_files() {
+    command unzip -qd "${site_path}" "${backup_file}"
+}
+
+app_restore_site_database() {
+    local site_path="${site_config[root]}"
+    local dump_file_suffix="${site_config[database_dump_file_suffix]}"
+
+    local -a dump_files=("${site_path}/"*"${dump_file_suffix}")
+
+    [[ "${#dump_files[@]}" -eq 0 ]] && return
+
+    if [[ "${#dump_files[@]}" -gt 1 ]]; then
+        app::error::error "Multiple database dump files found: ${dump_files[*]}"
+    fi
+
+    dump="$(realpath "${dump_files[0]}")"
+
+    read -r -p "Database dump found: ${dump##*/}. Load? [y/n] "
+
+    [[ "${REPLY}" != 'y' ]] && return
+
     app::database::cli < "${dump}"
 
-    rm --force "${dump}"
+    command rm --force "${dump}"
 }
 
 main "$@"

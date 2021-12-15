@@ -26,39 +26,32 @@ app::site::check_site_path_is_empty_and_writable() {
 app::site::detect_site_config() {
     local site_path="${1}"
 
-    local site_plugin=''
-    local site_plugin_config=''
-
-    app::site::detect_site_plugin "${site_path}"
-
-    [[ -z "${site_plugin}" ]] && return 0
-
-    site_config[plugin]="${site_plugin}"
-    site_config[plugin_name]="${site_plugin##*/}"
     site_config[root]="${site_path}"
+    site_config[cofig_file_pattern]='*.jimbo.conf'
+    site_config[database_dump_file_suffix]='-dump.sql'
 
-    app::site::load_site_config "${site_plugin}" <<<"${site_plugin_config}"
+    app::site::detect_site_plugin
 
-    local site_config_file=''
+    [[ -z "${site_config[plugin]:-}" ]] && return 0
 
-    app::site::find_site_config_file "${site_path}"
+    site_config[plugin_name]="${site_config[plugin]##*/}"
 
-    [[ -z "${site_config_file}" ]] && return 0
+    app::site::load_site_config "${site_config[plugin]}" <<<"${site_config[plugin_config]}"
 
-    site_config[config_file]="${site_config_file}"
+    app::site::find_site_config_file
 
-    app::site::load_site_config "${site_config_file}" < "${site_config_file}"
+    [[ -z "${site_config[config_file]:-}" ]] && return 0
+
+    app::site::load_site_config "${site_config[config_file]}" < "${site_config[config_file]}"
 }
 
 app::site::detect_site_plugin() {
-    local site_path="${1}"
-
     local plg plg_conf
 
     for plg in $(app::plugin::plugins_list); do
-        if plg_conf="$(cd "${site_path}" && "${plg}")"; then
-            site_plugin="${plg}"
-            site_plugin_config="${plg_conf}"
+        if plg_conf="$(cd "${site_config[root]}" && "${plg}")"; then
+            site_config[plugin]="${plg}"
+            site_config[plugin_config]="${plg_conf}"
 
             return
         fi
@@ -66,9 +59,7 @@ app::site::detect_site_plugin() {
 }
 
 app::site::find_site_config_file() {
-    local site_path="${1}"
-
-    local -a config_files=("${site_path}"/${app_config_file_pattern})
+    local -a config_files=("${site_config[root]}"/${site_config[cofig_file_pattern]})
 
     [[ "${#config_files[@]}" -eq 0 ]] && return 0
 
@@ -76,7 +67,7 @@ app::site::find_site_config_file() {
         app::error::error "Multiple site config files found: ${config_files[*]}"
     fi
 
-    site_config_file="$(realpath "${config_files[0]}")"
+    site_config[config_file]="$(realpath "${config_files[0]}")"
 }
 
 app::site::load_site_config() {
@@ -87,11 +78,11 @@ app::site::load_site_config() {
             plugin_name )
                 site_config[plugin_name]="${value}"
                 ;;
-            exclude_paths )
-                site_config[exclude_paths]+="${site_config[exclude_paths]:+ }${value}"
+            exclude )
+                site_config[exclude]+="${site_config[exclude]:+ }${value}"
                 ;;
-            include_paths )
-                site_config[include_paths]+="${site_config[include_paths]:+ }${value}"
+            include )
+                site_config[include]+="${site_config[include]:+ }${value}"
                 ;;
             database_name )
                 site_config[database_name]="${value}"

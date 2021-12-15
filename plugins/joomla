@@ -4,8 +4,8 @@ grep 'JConfig' 'configuration.php' &>/dev/null || exit 1
 
 cat <<CONFIG
 plugin_name: Joomla!
-exclude_paths: /cache/* /tmp/* /administrator/cache/*
-include_paths: */index.html
+exclude: /cache/* /tmp/* /administrator/cache/*
+include: */index.html
 CONFIG
 
 sed -nE \

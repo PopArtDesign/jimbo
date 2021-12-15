@@ -13,9 +13,6 @@ declare -rx app_plugins_path="${app_base_path}/plugins"
 declare -rx app_libs_path="${app_base_path}/lib"
 declare -rx app_libs_loader="${app_base_path}/loader.bash"
 
-declare -rx app_database_dump_file_suffix='-dump.sql'
-declare -rx app_config_file_pattern='*.jimbo.conf'
-
 source "${app_libs_path}/command.bash"
 source "${app_libs_path}/error.bash"
 

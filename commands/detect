@@ -7,7 +7,6 @@ source "${app_libs_loader}"
 
 app::use 'error'
 app::use 'site'
-app::use 'info'
 
 main() {
     while [[ $# -gt 0 ]]; do
@@ -36,9 +35,29 @@ main() {
 
     app::site::detect_site_config "${site_path}"
 
-    app::info::plugin   'site_config'
-    app::info::site     'site_config'
-    app::info::database 'site_config' --show-password
+    app_header 'Plugin'
+
+    echo "Name: ${site_config[plugin_name]:-default (zip)}"
+    echo "Path: ${site_config[plugin]:-~}"
+
+    app_header 'Site'
+
+    local config_file="${site_config[config_file]:-~}"
+
+    echo "Path:        ${site_config[root]:-~}"
+    echo "Config file: ${config_file##*/}"
+    echo "Exclude:     ${site_config[exclude]:-~}"
+    echo "Include:     ${site_config[include]:-~}"
+
+    app_header 'Database'
+
+    echo "Name:     ${site_config[database_name]:-~}"
+    echo "User:     ${site_config[database_user]:-~}"
+    echo "Password: ${site_config[database_password]:-~}"
+}
+
+app_header() {
+    printf "\n### %s\n\n" "${1}"
 }
 
 main "$@"

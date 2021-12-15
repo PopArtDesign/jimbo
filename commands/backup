@@ -5,18 +5,13 @@ shopt -s lastpipe nullglob
 
 source "${app_libs_loader}"
 
-app::use 'archive'
 app::use 'database'
 app::use 'error'
-app::use 'info'
 app::use 'site'
 
 main() {
-    local verbose=false
-
     while [ $# -gt 0 ]; do
         case "${1}" in
-            -v | --verbose ) verbose=true ;;
             -- ) shift && break ;;
             -* ) app::error::unknown_option "${1}" ;;
             * ) break
@@ -37,8 +32,8 @@ main() {
         app::error::missing_argument 'path to backup file'
     fi
 
-    local site_path="$(realpath $1)"
-    local backup_file="$(realpath $2)"
+    local site_path="$(realpath "${1}")"
+    local backup_file="$(realpath "${2}")"
 
     app::site::check_site_path_exists_and_readable "${site_path}"
 
@@ -46,49 +41,63 @@ main() {
         app::error::error "Backup file already exists: ${backup_file}"
     fi
 
-    local -A site_config=()
+    local -A site_config=(
+        [backup_file]="${backup_file}"
+    )
 
     app::site::detect_site_config "${site_path}"
 
-    app::info::plugin   'site_config'
-    app::info::site     'site_config'
-    app::info::database 'site_config'
-    app::info::backup
-
     printf '\nProcessing... This may take a while.\n'
 
-    cd "${site_path}"
+    app_backup_site_files
+
+    app_backup_site_database
+
+    printf '\nDone: %s\n' "${backup_file}"
+}
+
+app_backup_site_files() {
+    local site_path="${site_config[root]}"
+    local backup_file="${site_config[backup_file]}"
+
+    local include="${site_config[include]:-}"
+    local exclude="${site_config[exclude]:-}"
 
     set -o noglob
+    pushd "${site_path}" > /dev/null
 
-    if [[ -z "${site_config[exclude_paths]:-}${site_config[include_paths]:-}" ]]; then
-        app::archive::zip -u "${backup_file}" .
+    if [[ -z "${exclude}${include}" ]]; then
+        app_zip "${backup_file}" .
     else
-        if [[ -n "${site_config[include_paths]:-}" ]]; then
-            app::archive::zip -u "${backup_file}" . -i ${site_config[include_paths]}
+        if [[ -n "${include}" ]]; then
+            app_zip "${backup_file}" . -i ${include}
         fi
 
-        if [[ -n "${site_config[exclude_paths]:-}" ]]; then
-            app::archive::zip -u "${backup_file}" . -x ${site_config[exclude_paths]}
+        if [[ -n "${exclude}" ]]; then
+            app_zip "${backup_file}" . -x ${exclude}
         fi
     fi
 
     set +o noglob
+    popd > /dev/null
+}
 
-    if [[ -z "${site_config[database_name]:-}" ]]; then
-        app::info::result
+app_backup_site_database() {
+    [[ -z "${site_config[database_name]:-}" ]] && return
 
-        exit 0
-    fi
+    local backup_file="${site_config[backup_file]}"
+    local dump_file_suffix="${site_config[database_dump_file_suffix]}"
 
-    local dump="$(mktemp --suffix "${app_database_dump_file_suffix}")"
+    local dump="$(command mktemp --suffix "${dump_file_suffix}")"
 
     app::database::dump > "${dump}" \
-        && app::archive::zip -ju "${backup_file}" "${dump}"
+        && app_zip -j "${backup_file}" "${dump}"
 
     rm --force "${dump}"
+}
 
-    app::info::result
+app_zip() {
+    command zip -qur "-${COMPRESSION_LEVEL:-9}" "$@"
 }
 
 main "$@"
