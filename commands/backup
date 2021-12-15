@@ -25,7 +25,7 @@ main() {
     fi
 
     if [ $# -lt 1 ]; then
-        app::error::missing_argument 'path to site'
+        app::error::missing_argument 'path to site or config file'
     fi
 
     if [ $# -lt 2 ]; then
@@ -34,8 +34,6 @@ main() {
 
     local site_path="$(realpath "${1}")"
     local backup_file="$(realpath "${2}")"
-
-    app::site::check_site_path_exists_and_readable "${site_path}"
 
     if [ -f "${backup_file}" ]; then
         app::error::error "Backup file already exists: ${backup_file}"

@@ -25,7 +25,7 @@ main() {
     fi
 
     if [[ $# -lt 1 ]]; then
-        app::error::missing_argument 'path to site'
+        app::error::missing_argument 'path to site or config file'
     fi
 
     if [[ $# -lt 2 ]]; then
@@ -34,8 +34,6 @@ main() {
 
     local site_path="$(realpath "${1}")"
     local backup_file="$(realpath "${2}")"
-
-    app::site::check_site_path_is_empty_and_writable "${site_path}"
 
     if ! [[ -f "${backup_file}" && -r "${backup_file}" ]]; then
         app::error::error "Backup file not exists or not readable: ${backup_file}"
@@ -57,7 +55,31 @@ main() {
 }
 
 app_restore_site_files() {
-    command unzip -qd "${site_path}" "${backup_file}"
+    local site_root=''
+
+    if [[ -d "${site_path}" ]]; then
+        site_root="${site_path}"
+    else
+        local -A site_config=()
+
+        app::site::load_config "${site_path}" < "${site_path}"
+
+        site_root="$(realpath "${site_config[root]}")"
+    fi
+
+    if ! [[ -d "${site_root}" ]]; then
+        app::error::error "Site path not exists or not a directory: ${site_root}"
+    fi
+
+    if ! [[ -z "$(command ls -A ${site_root})" ]]; then
+        app::error::error "Site path is not empty: ${site_root}"
+    fi
+
+    if ! [[ -w "${site_root}" ]]; then
+        app::error::error "Site path is not writable: ${site_root}"
+    fi
+
+    command unzip -qd "${site_root}" "${backup_file}"
 }
 
 app_restore_site_database() {

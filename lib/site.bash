@@ -1,51 +1,45 @@
 app::use 'error'
 app::use 'plugin'
 
-app::site::check_site_path_exists_and_readable() {
-    if [ ! -r "${1}" ]; then
-        app::error::error "Site path not exists or not readable: ${1}"
-    fi
-}
-
-app::site::check_site_path_is_empty_and_writable() {
-    local site_path="${1}"
-
-    if ! [[ -d "${site_path}" ]]; then
-        app::error::error "Site path is not exists or not a directory: ${site_path}"
-    fi
-
-    if ! [[ -z "$(command ls -A ${site_path})" ]]; then
-        app::error::error "Site path is not empty: ${site_path}"
-    fi
-
-    if ! [[ -w "${site_path}" ]]; then
-        app::error::error "Site path is not writable: ${site_path}"
-    fi
-}
-
 app::site::detect_config() {
     local site_path="${1}"
 
-    site_config[root]="${site_path}"
-    site_config[cofig_file_pattern]='*.jimbo.conf'
+    site_config[local_config_file_pattern]='*.jimbo.conf'
     site_config[database_dump_file_suffix]='-dump.sql'
+
+    if [[ -d "${site_path}" ]]; then
+        site_config[root]="${site_path}"
+    else
+        if ! [[ -r "${site_path}" ]]; then
+            app::error::error "${site_path}: not exists or not readable"
+        fi
+
+        site_config[config_file]="${site_path}"
+        app::site::load_config "${site_path}" < "${site_path}"
+
+        if [[ -z "${site_config[root]:-}" ]]; then
+            app::error::error "${site_path}: site root is not set"
+        fi
+    fi
 
     app::site::detect_plugin
 
-    [[ -z "${site_config[plugin]:-}" ]] && return 0
+    if [[ -n "${site_config[plugin]:-}" ]]; then
+        site_config[plugin_name]="${site_config[plugin]##*/}"
 
-    site_config[plugin_name]="${site_config[plugin]##*/}"
+        app::site::load_config "${site_config[plugin]}" <<<"${site_config[plugin_config]}"
+    fi
 
-    app::site::load_config "${site_config[plugin]}" <<<"${site_config[plugin_config]}"
+    app::site::find_local_config_file
 
-    app::site::find_config_file
-
-    [[ -z "${site_config[config_file]:-}" ]] && return 0
-
-    app::site::load_config "${site_config[config_file]}" < "${site_config[config_file]}"
+    if [[ -n "${site_config[local_config_file]:-}" ]]; then
+        app::site::load_config "${site_config[local_config_file]}" < "${site_config[local_config_file]}"
+    fi
 }
 
 app::site::detect_plugin() {
+    app::site::site_root_exists_and_readable
+
     local plg plg_conf
 
     for plg in $(app::plugin::plugins_list); do
@@ -58,16 +52,20 @@ app::site::detect_plugin() {
     done
 }
 
-app::site::find_config_file() {
-    local -a config_files=("${site_config[root]}"/${site_config[cofig_file_pattern]})
+app::site::find_local_config_file() {
+    [[ -z "${site_config[local_config_file_pattern]}" ]] && return
 
-    [[ "${#config_files[@]}" -eq 0 ]] && return 0
+    app::site::site_root_exists_and_readable
+
+    local -a config_files=("${site_config[root]}"/${site_config[local_config_file_pattern]})
+
+    [[ "${#config_files[@]}" -eq 0 ]] && return
 
     if [[ "${#config_files[@]}" -gt 1 ]]; then
         app::error::error "Multiple site config files found: ${config_files[*]}"
     fi
 
-    site_config[config_file]="$(realpath "${config_files[0]}")"
+    site_config[local_config_file]="$(realpath "${config_files[0]}")"
 }
 
 app::site::load_config() {
@@ -77,6 +75,9 @@ app::site::load_config() {
         case "${key}" in
             plugin_name )
                 site_config[plugin_name]="${value}"
+                ;;
+            root )
+                site_config[root]="${value}"
                 ;;
             exclude )
                 site_config[exclude]+="${site_config[exclude]:+ }${value}"
@@ -94,8 +95,14 @@ app::site::load_config() {
                 site_config[database_password]="${value}"
                 ;;
             * )
-                app::error::error "${src}: invalid configuration key: ${key}"
+                app::error::error "${src}: invalid key: ${key}"
                 ;;
         esac
     done
+}
+
+app::site::site_root_exists_and_readable() {
+    if [[ ! -r "${site_config[root]}" ]]; then
+        app::error::error "Site root not exists or not readable: ${site_config[root]}"
+    fi
 }

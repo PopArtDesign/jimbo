@@ -24,12 +24,10 @@ main() {
     fi
 
     if [[ $# -lt 1 ]]; then
-        app::error::missing_argument 'path to site'
+        app::error::missing_argument 'path to site or config file'
     fi
 
     local site_path="$(realpath "${1}")"
-
-    app::site::check_site_path_exists_and_readable "${site_path}"
 
     local -A site_config=()
 
@@ -42,12 +40,13 @@ main() {
 
     app_header 'Site'
 
-    local config_file="${site_config[config_file]:-~}"
+    local local_config_file="${site_config[local_config_file]:-~}"
 
-    echo "Path:        ${site_config[root]:-~}"
-    echo "Config file: ${config_file##*/}"
-    echo "Exclude:     ${site_config[exclude]:-~}"
-    echo "Include:     ${site_config[include]:-~}"
+    echo "Config file:  ${site_config[config_file]:-~}"
+    echo "Path:         ${site_config[root]:-~}"
+    echo "Local config: ${local_config_file##*/}"
+    echo "Exclude:      ${site_config[exclude]:-~}"
+    echo "Include:      ${site_config[include]:-~}"
 
     app_header 'Database'
 
