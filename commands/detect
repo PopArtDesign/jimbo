@@ -33,7 +33,7 @@ main() {
 
     local -A site_config=()
 
-    app::site::detect_site_config "${site_path}"
+    app::site::detect_config "${site_path}"
 
     app_header 'Plugin'
 

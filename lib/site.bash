@@ -23,29 +23,29 @@ app::site::check_site_path_is_empty_and_writable() {
     fi
 }
 
-app::site::detect_site_config() {
+app::site::detect_config() {
     local site_path="${1}"
 
     site_config[root]="${site_path}"
     site_config[cofig_file_pattern]='*.jimbo.conf'
     site_config[database_dump_file_suffix]='-dump.sql'
 
-    app::site::detect_site_plugin
+    app::site::detect_plugin
 
     [[ -z "${site_config[plugin]:-}" ]] && return 0
 
     site_config[plugin_name]="${site_config[plugin]##*/}"
 
-    app::site::load_site_config "${site_config[plugin]}" <<<"${site_config[plugin_config]}"
+    app::site::load_config "${site_config[plugin]}" <<<"${site_config[plugin_config]}"
 
-    app::site::find_site_config_file
+    app::site::find_config_file
 
     [[ -z "${site_config[config_file]:-}" ]] && return 0
 
-    app::site::load_site_config "${site_config[config_file]}" < "${site_config[config_file]}"
+    app::site::load_config "${site_config[config_file]}" < "${site_config[config_file]}"
 }
 
-app::site::detect_site_plugin() {
+app::site::detect_plugin() {
     local plg plg_conf
 
     for plg in $(app::plugin::plugins_list); do
@@ -58,7 +58,7 @@ app::site::detect_site_plugin() {
     done
 }
 
-app::site::find_site_config_file() {
+app::site::find_config_file() {
     local -a config_files=("${site_config[root]}"/${site_config[cofig_file_pattern]})
 
     [[ "${#config_files[@]}" -eq 0 ]] && return 0
@@ -70,7 +70,7 @@ app::site::find_site_config_file() {
     site_config[config_file]="$(realpath "${config_files[0]}")"
 }
 
-app::site::load_site_config() {
+app::site::load_config() {
     local src="${1}"
 
     while IFS=': ' read -r key value; do

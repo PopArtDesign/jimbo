@@ -45,7 +45,7 @@ main() {
         [backup_file]="${backup_file}"
     )
 
-    app::site::detect_site_config "${site_path}"
+    app::site::detect_config "${site_path}"
 
     printf '\nProcessing... This may take a while.\n'
 
