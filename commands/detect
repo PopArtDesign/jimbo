@@ -27,7 +27,7 @@ main() {
         app::error::missing_argument 'path to site or config file'
     fi
 
-    local site_path="$(realpath "${1}")"
+    local site_path="${1}"
 
     local -A site_config=()
 

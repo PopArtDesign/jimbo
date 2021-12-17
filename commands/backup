@@ -32,7 +32,7 @@ main() {
         app::error::missing_argument 'path to backup file'
     fi
 
-    local site_path="$(realpath "${1}")"
+    local site_path="${1}"
     local backup_file="$(realpath "${2}")"
 
     if [ -f "${backup_file}" ]; then

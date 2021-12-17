@@ -2,6 +2,14 @@ app::util::usage() {
     echo "Usage: ${app_name} $*"
 }
 
+app::util::realpath() {
+    if [[ -p "${1}" ]]; then
+        echo "${1}"
+    else
+        command realpath -q "$@"
+    fi
+}
+
 app::util::repeat_str() {
     [[ $# -eq 0 ]] && return
 

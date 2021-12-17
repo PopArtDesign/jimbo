@@ -1,8 +1,15 @@
 app::use 'error'
 app::use 'plugin'
+app::use 'util'
 
 app::site::detect_config() {
     local site_path="${1}"
+
+    if ! [[ -e "${site_path}" ]]; then
+        app::error::error "Site root or config file not exist: ${site_path}"
+    fi
+
+    site_path=$(app::util::realpath "${site_path}")
 
     site_config[local_config_file_pattern]='*.jimbo.conf'
     site_config[database_dump_file_suffix]='-dump.sql'
@@ -11,7 +18,7 @@ app::site::detect_config() {
         site_config[root]="${site_path}"
     else
         if ! [[ -r "${site_path}" ]]; then
-            app::error::error "${site_path}: not exists or not readable"
+            app::error::error "${site_path}: is not readable"
         fi
 
         site_config[config_file]="${site_path}"

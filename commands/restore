@@ -8,6 +8,7 @@ source "${app_libs_loader}"
 app::use 'database'
 app::use 'error'
 app::use 'site'
+app::use 'util'
 
 main() {
     while [[ $# -gt 0 ]]; do
@@ -32,7 +33,7 @@ main() {
         app::error::missing_argument 'path to backup file'
     fi
 
-    local site_path="$(realpath "${1}")"
+    local site_path="${1}"
     local backup_file="$(realpath "${2}")"
 
     if ! [[ -f "${backup_file}" && -r "${backup_file}" ]]; then
@@ -56,13 +57,18 @@ main() {
 
 app_restore_site_files() {
     local site_root=''
+    local _site_path=$(app::util::realpath "${site_path}")
 
-    if [[ -d "${site_path}" ]]; then
-        site_root="${site_path}"
+    if ! [[ -e "${_site_path}" ]]; then
+        app::error::error "Site root or config file not exist: ${_site_path}"
+    fi
+
+    if [[ -d "${_site_path}" ]]; then
+        site_root="${_site_path}"
     else
         local -A site_config=()
 
-        app::site::load_config "${site_path}" < "${site_path}"
+        app::site::load_config "${_site_path}" < "${_site_path}"
 
         site_root="$(realpath "${site_config[root]}")"
     fi
