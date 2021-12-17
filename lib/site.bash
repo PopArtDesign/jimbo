@@ -2,67 +2,75 @@ app::use 'error'
 app::use 'plugin'
 app::use 'util'
 
-app::site::detect_config() {
+app::site::load_site_config() {
+    app::site::load_base_config "${1}"
+
+    app::site::load_plugin_config
+
+    app::site::load_local_config
+}
+
+app::site::load_base_config() {
     local site_path="${1}"
 
     if ! [[ -e "${site_path}" ]]; then
         app::error::error "Site root or config file not exist: ${site_path}"
     fi
 
-    site_path=$(app::util::realpath "${site_path}")
+    site_path="$(app::util::realpath "${site_path}")"
 
     site_config[local_config_file_pattern]='*.jimbo.conf'
     site_config[database_dump_file_suffix]='-dump.sql'
 
     if [[ -d "${site_path}" ]]; then
         site_config[root]="${site_path}"
-    else
-        if ! [[ -r "${site_path}" ]]; then
-            app::error::error "${site_path}: is not readable"
-        fi
 
-        site_config[config_file]="${site_path}"
-        app::site::load_config "${site_path}" < "${site_path}"
-
-        if [[ -z "${site_config[root]:-}" ]]; then
-            app::error::error "${site_path}: site root is not set"
-        fi
+        return
     fi
 
-    app::site::detect_plugin
-
-    if [[ -n "${site_config[plugin]:-}" ]]; then
-        site_config[plugin_name]="${site_config[plugin]##*/}"
-
-        app::site::load_config "${site_config[plugin]}" <<<"${site_config[plugin_config]}"
+    if ! [[ -r "${site_path}" ]]; then
+        app::error::error "${site_path}: is not readable"
     fi
 
-    app::site::find_local_config_file
+    site_config[base_config_file]="${site_path}"
+    app::site::load_config "${site_path}" < "${site_path}"
 
-    if [[ -n "${site_config[local_config_file]:-}" ]]; then
-        app::site::load_config "${site_config[local_config_file]}" < "${site_config[local_config_file]}"
+    if [[ -z "${site_config[root]:-}" ]]; then
+        app::error::error "${site_path}: site root is not set"
     fi
+
+    local base_config_dir="${PWD}"
+
+    if [[ -f "${site_path}" ]]; then
+        base_config_dir="$(dirname "${site_path}")"
+    fi
+
+    site_config[root]="$(cd "${base_config_dir}" && app::util::realpath "${site_config[root]}")"
 }
 
-app::site::detect_plugin() {
-    app::site::site_root_exists_and_readable
+app::site::load_plugin_config() {
+    app::site::check_site_root_exists_and_readable
 
-    local plg plg_conf
+    local plugin=''
+    local plugin_config=''
 
-    for plg in $(app::plugin::plugins_list); do
-        if plg_conf="$(cd "${site_config[root]}" && "${plg}")"; then
-            site_config[plugin]="${plg}"
-            site_config[plugin_config]="${plg_conf}"
+    for plugin in $(app::plugin::plugins_list); do
+        if plugin_config="$(cd "${site_config[root]}" && "${plugin}")"; then
+            site_config[plugin]="${plugin}"
+            site_config[plugin_name]="${plugin##*/}"
+            site_config[plugin_config]="${plugin_config}"
+
+            app::site::load_config "${plugin}" <<<"${plugin_config}"
 
             return
         fi
     done
 }
 
-app::site::find_local_config_file() {
+app::site::load_local_config() {
     [[ -z "${site_config[local_config_file_pattern]}" ]] && return
 
-    app::site::site_root_exists_and_readable
+    app::site::check_site_root_exists_and_readable
 
     local -a config_files=("${site_config[root]}"/${site_config[local_config_file_pattern]})
 
@@ -72,7 +80,9 @@ app::site::find_local_config_file() {
         app::error::error "Multiple site config files found: ${config_files[*]}"
     fi
 
-    site_config[local_config_file]="$(realpath "${config_files[0]}")"
+    site_config[local_config_file]="$(app::util::realpath "${config_files[0]}")"
+
+    app::site::load_config "${site_config[local_config_file]}" < "${site_config[local_config_file]}"
 }
 
 app::site::load_config() {
@@ -115,7 +125,15 @@ app::site::load_config() {
     done
 }
 
-app::site::site_root_exists_and_readable() {
+app::site::check_site_root_exists_and_readable() {
+    if [[ -z "${site_config[root]:-}" ]]; then
+        app::error::error 'Site root is not set'
+    fi
+
+    if [[ ! -d "${site_config[root]}" ]]; then
+        app::error::error "Site root not exists or not a directory: ${site_config[root]}"
+    fi
+
     if [[ ! -r "${site_config[root]}" ]]; then
         app::error::error "Site root not exists or not readable: ${site_config[root]}"
     fi

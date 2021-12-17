@@ -32,7 +32,7 @@ main() {
 
     local -A site_config
 
-    app::site::detect_config "${site_path}"
+    app::site::load_site_config "${site_path}"
 
     if [[ -z "${site_config[database_name]:-}" ]]; then
         app::error::error 'Database not detected'

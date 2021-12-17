@@ -31,7 +31,7 @@ main() {
 
     local -A site_config=()
 
-    app::site::detect_config "${site_path}"
+    app::site::load_site_config "${site_path}"
 
     app_header 'Plugin'
 
@@ -42,9 +42,9 @@ main() {
 
     local local_config_file="${site_config[local_config_file]:-~}"
 
-    echo "Config file:  ${site_config[config_file]:-~}"
-    echo "Path:         ${site_config[root]:-~}"
+    echo "Base config:  ${site_config[base_config_file]:-~}"
     echo "Local config: ${local_config_file##*/}"
+    echo "Root:         ${site_config[root]:-~}"
     echo "Exclude:      ${site_config[exclude]:-~}"
     echo "Include:      ${site_config[include]:-~}"
 
