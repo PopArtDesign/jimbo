@@ -56,11 +56,11 @@ main() {
 }
 
 app_restore_site_files() {
-    local site_config=()
+    local -A site_config=()
 
     app::site::load_base_config "${site_path}"
 
-    if ! [[ -d "${site_conifg[root]}" ]]; then
+    if ! [[ -d "${site_config[root]}" ]]; then
         app::error::error "Site path not exists or not a directory: ${site_config[root]}"
     fi
 
