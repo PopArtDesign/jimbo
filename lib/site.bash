@@ -77,6 +77,10 @@ app::site::load_config() {
                 site_config[plugin_name]="${value}"
                 ;;
             root )
+                if [[ -n "${site_config[root]:-}" ]]; then
+                    app::error::error "${src}: site root is already set"
+                fi
+
                 site_config[root]="${value}"
                 ;;
             exclude )
