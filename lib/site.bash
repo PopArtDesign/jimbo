@@ -94,6 +94,9 @@ app::site::load_config() {
             database_password )
                 site_config[database_password]="${value}"
                 ;;
+            '' )
+                continue
+                ;;
             * )
                 app::error::error "${src}: invalid key: ${key}"
                 ;;
