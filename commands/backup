@@ -45,7 +45,7 @@ main() {
 
     app::site::load_site_config "${site_path}"
 
-    printf '\nProcessing... This may take a while.\n'
+    printf '\nProcessing... This may take a while.\n\n'
 
     app_backup_site_files
 

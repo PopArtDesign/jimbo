@@ -8,7 +8,6 @@ source "${app_libs_loader}"
 app::use 'database'
 app::use 'error'
 app::use 'site'
-app::use 'util'
 
 main() {
     while [[ $# -gt 0 ]]; do
@@ -40,7 +39,7 @@ main() {
         app::error::error "Backup file not exists or not readable: ${backup_file}"
     fi
 
-    printf '\nProcessing... This may take a while.\n'
+    printf '\nProcessing... This may take a while.\n\n'
 
     app_restore_site_files
 
