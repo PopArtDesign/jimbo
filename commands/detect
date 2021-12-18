@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu -o pipefail
-shopt -s lastpipe nullglob
-
-source "${app_libs_loader}"
+source "${app_common}"
 
 app::use 'error'
 app::use 'site'
