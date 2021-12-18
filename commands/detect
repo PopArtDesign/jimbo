@@ -30,6 +30,8 @@ main() {
 
     app::site::load_site_config "${site_path}"
 
+    echo "${site_config[@]}"
+
     app_header 'Plugin'
 
     echo "Name: ${site_config[plugin_name]:-default (zip)}"

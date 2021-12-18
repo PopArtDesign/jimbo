@@ -6,7 +6,7 @@ app::util::realpath() {
     if [[ -p "${1}" ]]; then
         echo "${1}"
     else
-        command realpath -q "$@"
+        command realpath "$@"
     fi
 }
 

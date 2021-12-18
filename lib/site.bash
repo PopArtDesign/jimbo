@@ -3,6 +3,10 @@ app::use 'plugin'
 app::use 'util'
 
 app::site::load_site_config() {
+    if [[ $# -eq 0 ]]; then
+        app::error::error "${FUNCNAME}: site path required"
+    fi
+
     app::site::load_base_config "${1}"
 
     app::site::load_plugin_config
@@ -45,7 +49,7 @@ app::site::load_base_config() {
         base_config_dir="$(dirname "${site_path}")"
     fi
 
-    site_config[root]="$(cd "${base_config_dir}" && app::util::realpath "${site_config[root]}")"
+    site_config[root]="$(cd "${base_config_dir}" && app::util::realpath -qm "${site_config[root]}")"
 }
 
 app::site::load_plugin_config() {

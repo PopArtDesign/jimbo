@@ -25,5 +25,5 @@ app::error::error() {
 
     printf "${app_name}${app_name:+ }ERROR: %s\n" "$@" >&2
 
-    exit "${exit_code}"
+    return "${exit_code}"
 }
