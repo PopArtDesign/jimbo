@@ -1,21 +1,21 @@
 #shellcheck shell=bash
 
 Describe 'jimbo'
-    It 'shows error message when invoked without arguments'
+    It 'fails when invoked without arguments'
         When call jimbo
 
         The status should be failure
         The error should include 'Missing argument: command. Try --help for more information'
     End
 
-    It 'shows error message when command not found'
+    It 'fails when command not found'
         When call jimbo hello
 
         The status should be failure
         The error should include 'Unknown command: hello'
     End
 
-    It 'shows error message when invalid option specified'
+    It 'fails when invalid option specified'
         When call jimbo --hello
 
         The status should be failure
