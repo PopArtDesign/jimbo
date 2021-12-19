@@ -17,22 +17,22 @@ main() {
         shift
     done
 
-    if [ $# -gt 2 ]; then
+    if [[ $# -gt 2 ]]; then
         app::error::too_many_arguments 2
     fi
 
-    if [ $# -lt 1 ]; then
+    if [[ $# -lt 1 ]]; then
         app::error::missing_argument 'path to site or config file'
     fi
 
-    if [ $# -lt 2 ]; then
+    if [[ $# -lt 2 ]]; then
         app::error::missing_argument 'path to backup file'
     fi
 
     local site_path="${1}"
     local backup_file="$(realpath "${2}")"
 
-    if [ -f "${backup_file}" ]; then
+    if [[ -e "${backup_file}" ]]; then
         app::error::error "Backup file already exists: ${backup_file}"
     fi
 
