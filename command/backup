@@ -81,7 +81,7 @@ app_backup_site_database() {
     [[ -z "${site_config[database_name]:-}" ]] && return
 
     local backup_file="${site_config[backup_file]}"
-    local dump_file_suffix="${site_config[database_dump_file_suffix]}"
+    local dump_file_suffix="${site_config[database_dump_suffix]}"
 
     local dump="$(command mktemp --suffix "${dump_file_suffix}")"
 

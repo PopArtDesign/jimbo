@@ -7,6 +7,8 @@ Include ./common.bash
 Include ./lib/site.bash
 
 Describe 'app::site::load_config'
+    Set 'errexit:on'
+
     beforeEach() {
         declare -gA site_config=()
     }
@@ -87,9 +89,70 @@ CONFIG
             #|foo: bar
         End
 
-        When call app::site::load_config '/usr/local/etc/jimbo/cool-site.conf' 'main'
+        When run app::site::load_config '/usr/local/etc/jimbo/cool-site.conf' 'main'
 
         The status should be failure
         The error should include '/usr/local/etc/jimbo/cool-site.conf: invalid key: foo'
+    End
+
+    It "doesn't allow \"root\" key in plugin config"
+        Data:raw
+            #|root: /tmp
+            #|exclude: .git
+        End
+
+        When run app::site::load_config 'joomla' 'plugin'
+
+        The status should be failure
+        The error should include 'joomla: key "root" allowed only in main config file'
+    End
+
+    It "doesn't allow \"plugin\" key in plugin config"
+        Data:raw
+            #|plugin: /bin/true
+            #|plugin_name: True Plugin
+            #|exclude: *
+        End
+
+        When run app::site::load_config 'true-plugin' 'plugin'
+
+        The status should be failure
+        The error should include 'true-plugin: key "plugin" allowed only in main config file'
+    End
+
+    It "doesn't allow \"root\" key in local config file"
+        Data:raw
+            #|root: /tmp
+            #|exclude: .git
+        End
+
+        When run app::site::load_config '/var/www/mysite/xxx.jimbo.conf' 'local'
+
+        The status should be failure
+        The error should include '/var/www/mysite/xxx.jimbo.conf: key "root" allowed only in main config file'
+    End
+
+    It "doesn't allow \"plugin_name\" key in local config"
+        Data:raw
+            #|plugin_name: Hey!
+            #|exclude: .git
+        End
+
+        When run app::site::load_config '/var/www/mysite/xxx.jimbo.conf' 'local'
+
+        The status should be failure
+        The error should include '/var/www/mysite/xxx.jimbo.conf: key "plugin_name" allowed only for plugins'
+    End
+
+    It "doesn't allow \"local_config_pattern\" key in local config file"
+        Data:raw
+            #|exclude: .git
+            #|local_config_pattern: *.jumbo.conf
+        End
+
+        When run app::site::load_config '/var/www/mysite/xxx.jimbo.conf' 'local'
+
+        The status should be failure
+        The error should include '/var/www/mysite/xxx.jimbo.conf: key "local_config_pattern" not allowed in local config file'
     End
 End

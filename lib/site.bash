@@ -116,31 +116,27 @@ app::site::load_config() {
 
     while IFS=': ' read -r key value; do
         case "${key}" in
+            root )
+                [[ "${context}" != 'main' ]] && app::error::error \
+                    "${src}: key \"${key}\" allowed only in main config file"
+
+                site_config[root]="${value}"
+                ;;
             plugin )
-                if [[ "${context}" != 'main' ]]; then
-                    app::error::error "${src}: key \"${key}\" only allowed in main config file"
-                fi
+                [[ "${context}" != 'main' ]] && app::error::error \
+                    "${src}: key \"${key}\" allowed only in main config file"
 
                 site_config[plugin]="${value}"
                 ;;
             plugin_name )
-                if [[ "${context}" != 'plugin' ]]; then
-                    app::error::error "${src}: key \"${key}\" only allowed for plugins"
-                fi
+                [[ "${context}" != 'plugin' ]] && app::error::error \
+                    "${src}: key \"${key}\" allowed only for plugins"
 
                 site_config[plugin_name]="${value}"
                 ;;
-            root )
-                if [[ "${context}" != 'main' ]]; then
-                    app::error::error "${src}: key \"${key}\" only allowed in main config file"
-                fi
-
-                site_config[root]="${value}"
-                ;;
             local_config_pattern )
-                if [[ "${context}" == 'local' ]]; then
-                    app::error::error "${src}: key \"${key}\" not allowed in local config file"
-                fi
+                [[ "${context}" == 'local' ]] && app::error::error \
+                    "${src}: key \"${key}\" not allowed in local config file"
 
                 site_config[local_config_pattern]="${value}"
                 ;;
