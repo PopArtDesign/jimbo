@@ -119,7 +119,7 @@ app::site::load_config() {
             database_password )
                 site_config[database_password]="${value}"
                 ;;
-            '' )
+            ''|'#' )
                 continue
                 ;;
             * )

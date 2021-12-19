@@ -65,6 +65,22 @@ CONFIG
         The value "${site_config[*]}" should equal '.git /tmp'
     End
 
+    It 'ignores comments'
+        Data:raw
+            #|#
+            #|# Site's root
+            #|#
+            #|root: /tmp
+            #|# Exclude GIT repos
+            #|exclude: .git
+        End
+
+        When call app::site::load_config 'base'
+
+        The status should be success
+        The value "${site_config[*]}" should equal '.git /tmp'
+    End
+
     It 'fails when invalid key is encountered'
         Data:raw
             #|root: /tmp
