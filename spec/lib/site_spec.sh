@@ -20,7 +20,7 @@ Describe 'app::site::load_config'
             #|include: index.html
         End
 
-        When call app::site::load_config 'base'
+        When call app::site::load_config 'site.conf' 'main'
 
         The status should be success
         The value "${#site_config[@]}" should equal 3
@@ -31,12 +31,12 @@ Describe 'app::site::load_config'
 
     It 'appends "include" and "exclude"'
         load_config() {
-            app::site::load_config 'base' <<CONFIG
+            app::site::load_config 'site.conf' 'main' <<CONFIG
 exclude: /cache .cache
 include: index.html
 CONFIG
 
-            app::site::load_config 'plugin' <<CONFIG
+            app::site::load_config 'joomla' 'plugin' <<CONFIG
 exclude: *.zip .git
 include: *.php
 CONFIG
@@ -59,7 +59,7 @@ CONFIG
             #|
         End
 
-        When call app::site::load_config 'base'
+        When call app::site::load_config 'site.conf' 'main'
 
         The status should be success
         The value "${site_config[*]}" should equal '.git /tmp'
@@ -75,7 +75,7 @@ CONFIG
             #|exclude: .git
         End
 
-        When call app::site::load_config 'base'
+        When call app::site::load_config 'site.conf' 'main'
 
         The status should be success
         The value "${site_config[*]}" should equal '.git /tmp'
@@ -87,7 +87,7 @@ CONFIG
             #|foo: bar
         End
 
-        When call app::site::load_config '/usr/local/etc/jimbo/cool-site.conf'
+        When call app::site::load_config '/usr/local/etc/jimbo/cool-site.conf' 'main'
 
         The status should be failure
         The error should include '/usr/local/etc/jimbo/cool-site.conf: invalid key: foo'

@@ -54,7 +54,7 @@ main() {
 app_restore_site_files() {
     local -A site_config=()
 
-    app::site::load_base_config "${site_path}"
+    app::site::load_main_config "${site_path}" 'main'
 
     if ! [[ -d "${site_config[root]}" ]]; then
         app::error::error "Site path not exists or not a directory: ${site_config[root]}"
@@ -73,7 +73,7 @@ app_restore_site_files() {
 
 app_restore_site_database() {
     local site_path="${site_config[root]}"
-    local dump_file_suffix="${site_config[database_dump_file_suffix]}"
+    local dump_file_suffix="${site_config[database_dump_suffix]}"
 
     local -a dump_files=("${site_path}/"*"${dump_file_suffix}")
 

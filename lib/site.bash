@@ -7,14 +7,14 @@ app::site::load_site_config() {
         app::error::error "${FUNCNAME}: site path required"
     fi
 
-    app::site::load_base_config "${1}"
+    app::site::load_main_config "${1}"
 
     app::site::load_plugin_config
 
     app::site::load_local_config
 }
 
-app::site::load_base_config() {
+app::site::load_main_config() {
     local site_path="${1}"
 
     if ! [[ -e "${site_path}" ]]; then
@@ -23,8 +23,8 @@ app::site::load_base_config() {
 
     site_path="$(app::util::realpath "${site_path}")"
 
-    site_config[local_config_file_pattern]='*.jimbo.conf'
-    site_config[database_dump_file_suffix]='-dump.sql'
+    site_config[local_config_pattern]='*.jimbo.conf'
+    site_config[database_dump_suffix]='-dump.sql'
 
     if [[ -d "${site_path}" ]]; then
         site_config[root]="${site_path}"
@@ -37,7 +37,7 @@ app::site::load_base_config() {
     fi
 
     site_config[base_config_file]="${site_path}"
-    app::site::load_config "${site_path}" < "${site_path}"
+    app::site::load_config "${site_path}" 'main' < "${site_path}"
 
     if [[ -z "${site_config[root]:-}" ]]; then
         app::error::error "${site_path}: site root is not set"
@@ -53,30 +53,51 @@ app::site::load_base_config() {
 }
 
 app::site::load_plugin_config() {
+    if [[ -v 'site_config[plugin_config]' ]]; then
+        app::error::error "Plugin already loaded: ${site_config[plugin]:-}"
+    fi
+
     app::site::check_site_root_exists_and_readable
 
-    local plugin=''
+    local plugin="${site_config[plugin]:-}"
     local plugin_config=''
 
-    for plugin in $(app::plugin::plugins_list); do
-        if plugin_config="$(cd "${site_config[root]}" && "${plugin}")"; then
-            site_config[plugin]="${plugin}"
-            site_config[plugin_name]="${plugin##*/}"
-            site_config[plugin_config]="${plugin_config}"
+    if [[ -z "${plugin}" ]]; then
+        local plg=''
+        local plg_config=''
 
-            app::site::load_config "${plugin}" <<<"${plugin_config}"
+        for plg in $(app::plugin::plugins_list); do
+            if plg_config="$(cd "${site_config[root]}" && "${plg}")"; then
+                plugin="${plg}"
+                plugin_config="${plg_config}"
 
-            return
+                break
+            fi
+        done
+
+        [[ -z "${plugin}" ]] && plugin='default'
+
+    elif [[ ! "${plugin}" == default ]]; then
+        if ! plugin_config="$(cd "${site_config[root]}" && "${plugin}")"; then
+            app::error::error "Error occured while loading plugin: ${plugin}"
         fi
-    done
+    fi
+
+    site_config[plugin]="${plugin}"
+    site_config[plugin_name]="${plugin##*/}"
+    site_config[plugin_config]="${plugin_config}"
+
+    if [[ -n "${plugin_config}" ]]; then
+        app::site::load_config "${plugin}" 'plugin' <<<"${plugin_config}"
+    fi
 }
 
 app::site::load_local_config() {
-    [[ -z "${site_config[local_config_file_pattern]}" ]] && return
+    [[ -z "${site_config[local_config_pattern]}" ]] && return
 
     app::site::check_site_root_exists_and_readable
 
-    local -a config_files=("${site_config[root]}"/${site_config[local_config_file_pattern]})
+    local -a config_files=("${site_config[root]}"/${site_config[local_config_pattern]})
 
     [[ "${#config_files[@]}" -eq 0 ]] && return
 
@@ -86,23 +107,42 @@ app::site::load_local_config() {
 
     site_config[local_config_file]="$(app::util::realpath "${config_files[0]}")"
 
-    app::site::load_config "${site_config[local_config_file]}" < "${site_config[local_config_file]}"
+    app::site::load_config "${site_config[local_config_file]}" 'local' < "${site_config[local_config_file]}"
 }
 
 app::site::load_config() {
     local src="${1}"
+    local context="${2}"
 
     while IFS=': ' read -r key value; do
         case "${key}" in
+            plugin )
+                if [[ "${context}" != 'main' ]]; then
+                    app::error::error "${src}: key \"${key}\" only allowed in main config file"
+                fi
+
+                site_config[plugin]="${value}"
+                ;;
             plugin_name )
+                if [[ "${context}" != 'plugin' ]]; then
+                    app::error::error "${src}: key \"${key}\" only allowed for plugins"
+                fi
+
                 site_config[plugin_name]="${value}"
                 ;;
             root )
-                if [[ -n "${site_config[root]:-}" ]]; then
-                    app::error::error "${src}: site root is already set"
+                if [[ "${context}" != 'main' ]]; then
+                    app::error::error "${src}: key \"${key}\" only allowed in main config file"
                 fi
 
                 site_config[root]="${value}"
+                ;;
+            local_config_pattern )
+                if [[ "${context}" == 'local' ]]; then
+                    app::error::error "${src}: key \"${key}\" not allowed in local config file"
+                fi
+
+                site_config[local_config_pattern]="${value}"
                 ;;
             exclude )
                 site_config[exclude]+="${site_config[exclude]:+ }${value}"
@@ -118,6 +158,9 @@ app::site::load_config() {
                 ;;
             database_password )
                 site_config[database_password]="${value}"
+                ;;
+            database_dump_suffix )
+                site_config[database_dump_suffix]="${value}"
                 ;;
             ''|'#' )
                 continue
