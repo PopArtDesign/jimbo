@@ -29,12 +29,12 @@ main() {
         app::error::missing_argument 'path to backup file'
     fi
 
+    if ! [[ -f "${2}" && -r "${2}" ]]; then
+        app::error::error "Backup file not exists or not readable: ${2}"
+    fi
+
     local site_path="${1}"
     local backup_file="$(realpath "${2}")"
-
-    if ! [[ -f "${backup_file}" && -r "${backup_file}" ]]; then
-        app::error::error "Backup file not exists or not readable: ${backup_file}"
-    fi
 
     printf '\nProcessing... This may take a while.\n\n'
 
