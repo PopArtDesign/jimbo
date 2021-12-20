@@ -3,9 +3,24 @@
 source "${app_common}"
 
 app::use 'command'
+app::use 'error'
 app::use 'util'
 
 main() {
+    while [[ $# -gt 0 ]]; do
+        case "${1}" in
+            -- ) shift && break ;;
+            -* ) app::error::unknown_option "${1}" ;;
+            * ) break
+        esac
+
+        shift
+    done
+
+    if [[ $# -gt 0 ]]; then
+        app::error::too_many_arguments 0
+    fi
+
     cat <<HELP
 ${app_name}: simple backup tool for web sites (Joomla, Wordpress & etc.).
 
