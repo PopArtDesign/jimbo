@@ -23,9 +23,9 @@ Describe 'jimbo backup'
     End
 
     It 'fails when backup file already exists'
-        When call jimbo backup ./lib ./spec/fixtures/empty.zip
+        When call jimbo backup ./lib ./fixture/empty.zip
 
         The status should be failure
-        The error should match pattern '*Backup file already exists: */spec/fixtures/empty.zip*'
+        The error should match pattern '*Backup file already exists: */fixture/empty.zip*'
     End
 End
