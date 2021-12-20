@@ -1,6 +1,7 @@
 # Jimbo
 
 [![CI](https://github.com/PopArtDesign/jimbo/actions/workflows/ci.yaml/badge.svg)](https://github.com/PopArtDesign/jimbo/actions/workflows/ci.yaml)
+[![GitHub license](https://img.shields.io/github/license/PopArtDesign/jimbo)](https://github.com/PopArtDesign/jimbo/blob/main/LICENSE)
 
 Simple backup tool for web sites (Joomla!, WordPress and etc.)
 
@@ -31,3 +32,7 @@ Global (`/opt`):
 ```sh
 sudo unlink /usr/local/bin/jimbo; sudo rm -rf /opt/jimbo
 ```
+
+## License
+
+Copyright (c) Voronkovich Oleg. Distributed under the MIT.
