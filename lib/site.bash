@@ -9,9 +9,9 @@ app::site::load_site_config() {
 
     app::site::load_main_config "${1}"
 
-    app::site::load_plugin_config
-
     app::site::load_local_config
+
+    app::site::load_plugin_config
 }
 
 app::site::load_main_config() {
@@ -122,9 +122,15 @@ app::site::load_config() {
 
                 site_config[root]="${value}"
                 ;;
-            plugin )
+            local_config_pattern )
                 [[ "${context}" != 'main' ]] && app::error::error \
                     "${src}: key \"${key}\" allowed only in main config file"
+
+                site_config[local_config_pattern]="${value}"
+                ;;
+            plugin )
+                [[ "${context}" == 'plugin' ]] && app::error::error \
+                    "${src}: key \"${key}\" not allowed for plugins"
 
                 site_config[plugin]="${value}"
                 ;;
@@ -133,12 +139,6 @@ app::site::load_config() {
                     "${src}: key \"${key}\" allowed only for plugins"
 
                 site_config[plugin_name]="${value}"
-                ;;
-            local_config_pattern )
-                [[ "${context}" == 'local' ]] && app::error::error \
-                    "${src}: key \"${key}\" not allowed in local config file"
-
-                site_config[local_config_pattern]="${value}"
                 ;;
             exclude )
                 site_config[exclude]+="${site_config[exclude]:+ }${value}"

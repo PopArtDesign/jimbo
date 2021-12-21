@@ -95,6 +95,18 @@ CONFIG
         The error should include '/usr/local/etc/jimbo/cool-site.conf: invalid key: foo'
     End
 
+    It "doesn't allow \"plugin_name\" key in main config"
+        Data:raw
+            #|plugin_name: Hey!
+            #|exclude: .git
+        End
+
+        When run app::site::load_config '/usr/local/etc/jimbo/cool-site.conf' 'main'
+
+        The status should be failure
+        The error should include '/usr/local/etc/jimbo/cool-site.conf: key "plugin_name" allowed only for plugins'
+    End
+
     It "doesn't allow \"root\" key in plugin config"
         Data:raw
             #|root: /tmp
@@ -117,7 +129,20 @@ CONFIG
         When run app::site::load_config 'true-plugin' 'plugin'
 
         The status should be failure
-        The error should include 'true-plugin: key "plugin" allowed only in main config file'
+        The error should include 'true-plugin: key "plugin" not allowed for plugins'
+    End
+
+    It "doesn't allow \"local_config_pattern\" key in plugin config"
+        Data:raw
+            #|plugin_name: True Plugin
+            #|local_config_pattern: xxx.jimbo.conf
+            #|exclude: *
+        End
+
+        When run app::site::load_config 'true-plugin' 'plugin'
+
+        The status should be failure
+        The error should include 'true-plugin: key "local_config_pattern" allowed only in main config file'
     End
 
     It "doesn't allow \"root\" key in local config file"
@@ -153,6 +178,6 @@ CONFIG
         When run app::site::load_config '/var/www/mysite/xxx.jimbo.conf' 'local'
 
         The status should be failure
-        The error should include '/var/www/mysite/xxx.jimbo.conf: key "local_config_pattern" not allowed in local config file'
+        The error should include '/var/www/mysite/xxx.jimbo.conf: key "local_config_pattern" allowed only in main config file'
     End
 End
