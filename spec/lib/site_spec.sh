@@ -6,6 +6,85 @@ app_libs_path=./lib
 Include ./common.bash
 Include ./lib/site.bash
 
+Describe 'app::site::load_main_config'
+    Set 'errexit:on'
+
+    beforeEach() {
+        declare -gA site_config=()
+    }
+
+    BeforeEach 'beforeEach'
+
+    It 'fails if site path or config file not exists'
+        When call app::site::load_main_config '/i/hope/this/path/not/exists'
+
+        The status should be failure
+        The error should include 'Site root or config file not exists: /i/hope/this/path/not/exists'
+    End
+
+    It 'sets default values for some config entries'
+        When call app::site::load_main_config './fixture'
+
+        The status should be success
+        The value "${site_config[local_config_pattern]}" should equal '*.jimbo.conf'
+        The value "${site_config[database_dump_suffix]}" should equal '-dump.sql'
+    End
+
+    Context 'site root provided'
+        It 'sets canonicalized site root path'
+            site_root="$(realpath ./fixture)"
+
+            When call app::site::load_main_config './fixture'
+
+            The status should be success
+            The value "${site_config[root]}" should equal "${site_root}"
+        End
+    End
+
+    Context 'main config file provided'
+        It 'fails if main config file is not readable'
+            not_readable="$(umask 777 && mktemp --suffix .conf)"
+
+            When run app::site::load_main_config "${not_readable}"
+
+            The status should be failure
+            The error should include "${not_readable}: is not readable"
+
+            rm -rf "${not_readable}"
+        End
+
+        It 'fails if site root is not set'
+            Data:raw
+                #|exclude: /cache/*
+                #|include: */index.html
+            End
+
+            When run app::site::load_main_config /dev/stdin
+
+            The status should be failure
+            The error should include ': site root is not set'
+        End
+
+        It 'sets canonicalized path to main file'
+            main_config_file="$(realpath ./fixture/site.conf)"
+
+            When call app::site::load_main_config './fixture/site.conf'
+
+            The status should be success
+            The value "${site_config[main_config_file]}" should equal "${main_config_file}"
+        End
+
+        It 'sets canonicalized site root path'
+            site_root="$(realpath ./fixture)"
+
+            When call app::site::load_main_config './fixture/site.conf'
+
+            The status should be success
+            The value "${site_config[root]}" should equal "${site_root}"
+        End
+    End
+End
+
 Describe 'app::site::load_config'
     Set 'errexit:on'
 

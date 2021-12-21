@@ -18,7 +18,7 @@ app::site::load_main_config() {
     local site_path="${1}"
 
     if ! [[ -e "${site_path}" ]]; then
-        app::error::error "Site root or config file not exist: ${site_path}"
+        app::error::error "Site root or config file not exists: ${site_path}"
     fi
 
     site_path="$(app::util::realpath "${site_path}")"
@@ -36,7 +36,7 @@ app::site::load_main_config() {
         app::error::error "${site_path}: is not readable"
     fi
 
-    site_config[base_config_file]="${site_path}"
+    site_config[main_config_file]="${site_path}"
     app::site::load_config "${site_path}" 'main' < "${site_path}"
 
     if [[ -z "${site_config[root]:-}" ]]; then
