@@ -92,7 +92,6 @@ app::site::load_plugin_config() {
     fi
 
     site_config[plugin]="${plugin}"
-    site_config[plugin_name]="${plugin}"
     site_config[plugin_path]="${plugin_path}"
     site_config[plugin_config]="${plugin_config}"
 
@@ -142,12 +141,6 @@ app::site::load_config() {
                     "${src}: key \"${key}\" not allowed for plugins"
 
                 site_config[plugin]="${value}"
-                ;;
-            plugin_name )
-                [[ "${context}" != 'plugin' ]] && app::error::error \
-                    "${src}: key \"${key}\" allowed only for plugins"
-
-                site_config[plugin_name]="${value}"
                 ;;
             exclude )
                 site_config[exclude]+="${site_config[exclude]:+ }${value}"

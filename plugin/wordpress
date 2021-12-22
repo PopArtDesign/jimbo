@@ -3,7 +3,6 @@
 [ -f 'wp-config.php' ] || exit 1
 
 cat <<CONFIG
-plugin_name: WordPress
 exclude: /wp-content/cache/*
 CONFIG
 
