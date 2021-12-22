@@ -32,8 +32,8 @@ main() {
 
     app_header 'Plugin'
 
-    echo "Name: ${site_config[plugin_name]:-default (zip)}"
-    echo "Path: ${site_config[plugin]:-~}"
+    echo "Name: ${site_config[plugin_name]:-~}"
+    echo "Path: ${site_config[plugin_path]:-~}"
 
     app_header 'Site'
 

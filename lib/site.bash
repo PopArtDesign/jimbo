@@ -60,43 +60,44 @@ app::site::load_plugin_config() {
     app::site::check_site_root_exists_and_readable
 
     local plugin="${site_config[plugin]:-}"
+    local plugin_path=''
     local plugin_config=''
 
     if [[ -z "${plugin}" ]]; then
+        plugin='default'
+
         local plg=''
         local plg_config=''
 
         for plg in $(app::plugin::plugins_list); do
             if plg_config="$(cd "${site_config[root]}" && "${plg}")"; then
-                plugin="$(realpath ${plg})"
+                plugin="${plg##*/}"
+                plugin_path="$(realpath ${plg})"
                 plugin_config="${plg_config}"
 
                 break
             fi
         done
 
-        [[ -z "${plugin}" ]] && plugin='default'
-
     elif [[ ! "${plugin}" == default ]]; then
-        local plugin_executable=''
-
-        if ! plugin_executable="$(app::plugin::find_executable "${plugin}")"; then
+        if ! plugin_path="$(app::plugin::find_executable "${plugin}")"; then
             app::error::error "Plugin executable not found: ${plugin}"
         fi
 
-        plugin="$(realpath "${plugin_executable}")"
+        plugin_path="$(realpath "${plugin_path}")"
 
-        if ! plugin_config="$(cd "${site_config[root]}" && "${plugin}")"; then
-            app::error::error "Error occured while loading plugin: ${plugin}"
+        if ! plugin_config="$(cd "${site_config[root]}" && "${plugin_path}")"; then
+            app::error::error "Error occured while loading plugin: ${plugin_path}"
         fi
     fi
 
     site_config[plugin]="${plugin}"
-    site_config[plugin_name]="${plugin##*/}"
+    site_config[plugin_name]="${plugin}"
+    site_config[plugin_path]="${plugin_path}"
     site_config[plugin_config]="${plugin_config}"
 
     if [[ -n "${plugin_config}" ]]; then
-        app::site::load_config "${plugin}" 'plugin' <<<"${plugin_config}"
+        app::site::load_config "${plugin_path}" 'plugin' <<<"${plugin_config}"
     fi
 }
 
