@@ -68,7 +68,7 @@ app::site::load_plugin_config() {
 
         for plg in $(app::plugin::plugins_list); do
             if plg_config="$(cd "${site_config[root]}" && "${plg}")"; then
-                plugin="${plg}"
+                plugin="$(realpath ${plg})"
                 plugin_config="${plg_config}"
 
                 break
@@ -78,6 +78,14 @@ app::site::load_plugin_config() {
         [[ -z "${plugin}" ]] && plugin='default'
 
     elif [[ ! "${plugin}" == default ]]; then
+        local plugin_executable=''
+
+        if ! plugin_executable="$(app::plugin::find_executable "${plugin}")"; then
+            app::error::error "Plugin executable not found: ${plugin}"
+        fi
+
+        plugin="$(realpath "${plugin_executable}")"
+
         if ! plugin_config="$(cd "${site_config[root]}" && "${plugin}")"; then
             app::error::error "Error occured while loading plugin: ${plugin}"
         fi
