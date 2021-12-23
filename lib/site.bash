@@ -23,7 +23,7 @@ app::site::load_main_config() {
 
     site_path="$(app::util::realpath "${site_path}")"
 
-    site_config[local_config_pattern]='*.jimbo.conf'
+    site_config[local_config_file_suffix]='.jimbo.conf'
     site_config[database_dump_suffix]='-dump.sql'
 
     if [[ -d "${site_path}" ]]; then
@@ -101,11 +101,11 @@ app::site::load_plugin_config() {
 }
 
 app::site::load_local_config() {
-    [[ -z "${site_config[local_config_pattern]}" ]] && return
+    [[ -z "${site_config[local_config_file_suffix]}" ]] && return
 
     app::site::check_site_root_exists_and_readable
 
-    local -a config_files=("${site_config[root]}"/${site_config[local_config_pattern]})
+    local -a config_files=("${site_config[root]}"/*"${site_config[local_config_file_suffix]}")
 
     [[ "${#config_files[@]}" -eq 0 ]] && return
 
@@ -130,11 +130,11 @@ app::site::load_config() {
 
                 site_config[root]="${value}"
                 ;;
-            local_config_pattern )
+            local_config_file_suffix )
                 [[ "${context}" != 'main' ]] && app::error::error \
                     "${src}: key \"${key}\" allowed only in main config file"
 
-                site_config[local_config_pattern]="${value}"
+                site_config[local_config_file_suffix]="${value}"
                 ;;
             plugin )
                 [[ "${context}" == 'plugin' ]] && app::error::error \

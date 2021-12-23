@@ -26,7 +26,7 @@ Describe 'app::site::load_main_config'
         When call app::site::load_main_config './fixture'
 
         The status should be success
-        The value "${site_config[local_config_pattern]}" should equal '*.jimbo.conf'
+        The value "${site_config[local_config_file_suffix]}" should equal '.jimbo.conf'
         The value "${site_config[database_dump_suffix]}" should equal '-dump.sql'
     End
 
@@ -198,16 +198,16 @@ CONFIG
         The error should include 'true-plugin: key "plugin" not allowed for plugins'
     End
 
-    It "doesn't allow \"local_config_pattern\" key in plugin config"
+    It "doesn't allow \"local_config_file_suffix\" key in plugin config"
         Data:raw
-            #|local_config_pattern: xxx.jimbo.conf
+            #|local_config_file_suffix: xxx.jimbo.conf
             #|exclude: *
         End
 
         When run app::site::load_config 'true-plugin' 'plugin'
 
         The status should be failure
-        The error should include 'true-plugin: key "local_config_pattern" allowed only in main config file'
+        The error should include 'true-plugin: key "local_config_file_suffix" allowed only in main config file'
     End
 
     It "doesn't allow \"root\" key in local config file"
@@ -222,15 +222,15 @@ CONFIG
         The error should include '/var/www/mysite/xxx.jimbo.conf: key "root" allowed only in main config file'
     End
 
-    It "doesn't allow \"local_config_pattern\" key in local config file"
+    It "doesn't allow \"local_config_file_suffix\" key in local config file"
         Data:raw
             #|exclude: .git
-            #|local_config_pattern: *.jumbo.conf
+            #|local_config_file_suffix: *.jumbo.conf
         End
 
         When run app::site::load_config '/var/www/mysite/xxx.jimbo.conf' 'local'
 
         The status should be failure
-        The error should include '/var/www/mysite/xxx.jimbo.conf: key "local_config_pattern" allowed only in main config file'
+        The error should include '/var/www/mysite/xxx.jimbo.conf: key "local_config_file_suffix" allowed only in main config file'
     End
 End
