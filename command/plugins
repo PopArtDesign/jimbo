@@ -7,10 +7,14 @@ app::use 'plugin'
 
 main() {
     local opt_all=false
+    local opt_paths=false
+    local opt_help=false
 
     while [[ $# -gt 0 ]]; do
         case "${1}" in
             -a | --all ) opt_all=true ;;
+            -p | --paths ) opt_paths=true ;;
+            -h | --help ) opt_help=true ;;
             -- ) shift && break ;;
             -* ) app::error::unknown_option "${1}" ;;
             * ) break
@@ -23,11 +27,55 @@ main() {
         app::error::too_many_arguments 0
     fi
 
+    if [[ "${opt_help}" == 'true' ]]; then
+        app_help
+
+        exit 0
+    fi
+
+    if [[ "${opt_paths}" == 'true' ]]; then
+        app_plugins_paths
+
+        exit 0
+    fi
+
+    app_plugins
+}
+
+app_plugins_paths() {
+    local IFS=':'
+    local path
+
+    for path in ${app_plugins_path}; do
+        echo "${path}"
+    done
+}
+
+app_plugins() {
     if [[ "${opt_all}" == 'true' ]]; then
         app::plugin::plugins_list
     else
+        echo 'default'
         app::plugin::plugins_list | xargs -n1 basename | sort -u
     fi
+}
+
+app_help() {
+    local app_command="${0##*/}"
+
+    cat <<HELP
+Shows available plugins
+
+Usage:
+
+  ${app_name} ${app_command} [options]
+
+Options:
+
+  -a, --all    Show all available plugins
+  -p, --paths  Show plugin search paths
+  -h, --help   Show this help
+HELP
 }
 
 main "$@"
