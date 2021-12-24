@@ -49,7 +49,7 @@ app::site::load_main_config() {
         base_config_dir="$(dirname "${site_path}")"
     fi
 
-    site_config[root]="$(cd "${base_config_dir}" && app::util::realpath -qm "${site_config[root]}")"
+    site_config[root]="$(app::util::realpath --working-dir "${base_config_dir}" -qm "${site_config[root]}")"
 }
 
 app::site::load_plugin_config() {
