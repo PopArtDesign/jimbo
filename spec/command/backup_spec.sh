@@ -49,4 +49,19 @@ Describe 'jimbo backup'
         The status should be success
         The output should start with 'Backup site'
     End
+
+    It "backups all site's files if no configuration provided"
+        backup_file="$(TMPDIR="${SHELLSPEC_TMPBASE}" mktemp --dry-run --suffix '.zip')"
+
+        backup_content() {
+            zipinfo -1 "${backup_file}" | sort
+        }
+
+        When call jimbo backup ./fixture/simple-site "${backup_file}"
+
+        The status should be success
+        The output should end with "Done: ${backup_file}"
+        The file "${backup_file}" should be file
+        The result of "backup_content()" should equal $'css/\ncss/style.css\nindex.html'
+    End
 End
