@@ -19,6 +19,18 @@ Global (`/opt`):
 sudo git clone --depth=1 https://github.com/PopArtDesign/jimbo /opt/jimbo && sudo ln -s /opt/jimbo/bin/jimbo /usr/local/bin/jimbo
 ```
 
+## Usage
+
+```sh
+jimbo backup /path/to/site /path/to/backup.zip
+```
+
+To get more information about available commands try `--help`
+
+```sh
+jimbo --help
+```
+
 ## Uninstall
 
 Local (`~/.local`):
