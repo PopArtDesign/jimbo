@@ -55,13 +55,16 @@ main() {
 
     app::site::load_site_config "${site_path}"
 
-    printf '\nProcessing... This may take a while.\n\n'
+    printf 'Site: %s\n' "${site_config[root]}"
+    printf 'Plugin: %s\n' "${site_config[plugin]}"
+
+    echo 'Processing... This may take a while.'
 
     app_backup_site_files
 
     app_backup_site_database
 
-    printf '\nDone: %s\n' "${backup_file}"
+    printf 'Done: %s\n' "${backup_file}"
 }
 
 app_backup_site_files() {

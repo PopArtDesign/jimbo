@@ -53,9 +53,12 @@ main() {
 
     app::site::load_site_config "${site_path}"
 
+    printf 'Site: %s\n' "${site_config[root]}"
+    printf 'Plugin: %s\n' "${site_config[plugin]}"
+
     app_restore_site_database
 
-    printf '\nDone: %s\n' "${site_config[root]}"
+    printf 'Done: %s\n' "${site_config[root]}"
 }
 
 app_restore_site_files() {
@@ -79,7 +82,7 @@ app_restore_site_files() {
         app::error::error "Site path is not writable: ${site_config[root]}"
     fi
 
-    printf '\nProcessing... This may take a while.\n\n'
+    echo 'Processing... This may take a while.'
 
     command unzip -qd "${site_config[root]}" "${backup_file}"
 }
