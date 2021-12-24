@@ -1,5 +1,13 @@
 #shellcheck shell=bash
 
+backup_file_name() {
+    TMPDIR="${SHELLSPEC_TMPBASE}" mktemp --dry-run --suffix '.zip'
+}
+
+backup_content() {
+    zipinfo -1 "${backup_file}" | sort
+}
+
 Describe 'jimbo backup'
     It 'fails when invoked without arguments'
         When call jimbo backup
@@ -51,11 +59,7 @@ Describe 'jimbo backup'
     End
 
     It "backups all site's files if no configuration provided"
-        backup_file="$(TMPDIR="${SHELLSPEC_TMPBASE}" mktemp --dry-run --suffix '.zip')"
-
-        backup_content() {
-            zipinfo -1 "${backup_file}" | sort
-        }
+        backup_file="$(backup_file_name)"
 
         When call jimbo backup ./fixture/simple-site "${backup_file}"
 
@@ -63,5 +67,21 @@ Describe 'jimbo backup'
         The output should end with "Done: ${backup_file}"
         The file "${backup_file}" should be file
         The result of "backup_content()" should equal $'css/\ncss/style.css\nindex.html'
+    End
+
+    It "excludes specified site's files"
+        backup_file="$(backup_file_name)"
+
+        Data:expand
+            #|root: ${SHELLSPEC_PROJECT_ROOT}/fixture/simple-site
+            #|exclude: *.css
+        End
+
+        When call jimbo backup /dev/stdin "${backup_file}"
+
+        The status should be success
+        The output should end with "Done: ${backup_file}"
+        The file "${backup_file}" should be file
+        The result of "backup_content()" should equal $'css/\nindex.html'
     End
 End
