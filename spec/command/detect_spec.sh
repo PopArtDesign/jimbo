@@ -21,4 +21,18 @@ Describe 'jimbo detect'
         The status should be failure
         The error should include 'Too many arguments. Expected: 1'
     End
+
+    It 'shows help message if -h option specified'
+        When call jimbo detect -h
+
+        The status should be success
+        The output should start with "Detect site's configuration"
+    End
+
+    It 'shows help message if --help option specified'
+        When call jimbo detect --help
+
+        The status should be success
+        The output should start with "Detect site's configuration"
+    End
 End
