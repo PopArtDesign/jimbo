@@ -69,7 +69,7 @@ Describe 'jimbo backup'
         The result of "backup_content()" should equal $'css/\ncss/style.css\nindex.html'
     End
 
-    It "excludes specified site's files"
+    It "allows to exclude specified site's files"
         backup_file="$(backup_file_name)"
 
         Data:expand
@@ -83,5 +83,44 @@ Describe 'jimbo backup'
         The output should end with "Done: ${backup_file}"
         The file "${backup_file}" should be file
         The result of "backup_content()" should equal $'css/\nindex.html'
+    End
+
+    It "allows to include only specified site's files"
+        backup_file="$(backup_file_name)"
+
+        Data:expand
+            #|root: ${SHELLSPEC_PROJECT_ROOT}/fixture/simple-site
+            #|include: *.html
+        End
+
+        When call jimbo backup /dev/stdin "${backup_file}"
+
+        The status should be success
+        The output should end with "Done: ${backup_file}"
+        The file "${backup_file}" should be file
+        The result of "backup_content()" should equal 'index.html'
+    End
+
+    It "allows to backup site's database"
+        backup_file="$(backup_file_name)"
+
+        Data:expand
+            #|root: ${SHELLSPEC_PROJECT_ROOT}/fixture/simple-site
+            #|database_name: simple
+            #|database_user: simple
+            #|database_password: simple
+            #|database_dump_suffix: .dump.sql
+        End
+
+        Mock mysqldump
+            echo 'dump'
+        End
+
+        When call jimbo backup /dev/stdin "${backup_file}"
+
+        The status should be success
+        The output should end with "Done: ${backup_file}"
+        The file "${backup_file}" should be file
+        The result of "backup_content()" should include '.dump.sql'
     End
 End
