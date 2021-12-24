@@ -7,8 +7,11 @@ app::use 'database'
 app::use 'site'
 
 main() {
+    local opt_help=false
+
     while [[ $# -gt 0 ]]; do
         case "${1}" in
+            -h | --help ) opt_help=true ;;
             -- ) shift && break ;;
             -* ) app::error::unknown_option "${1}" ;;
             * ) break
@@ -16,6 +19,12 @@ main() {
 
         shift
     done
+
+    if [[ "${opt_help}" == 'true' ]]; then
+        app_help
+
+        exit 0
+    fi
 
     if [[ $# -gt 1 ]]; then
         app::error::too_many_arguments 1
@@ -36,6 +45,26 @@ main() {
     fi
 
     app::database::cli
+}
+
+app_help() {
+    local app_command="${0##*/}"
+
+    cat <<HELP
+Launch database client
+
+Usage:
+
+  ${app_name} ${app_command} [options] <site path>
+
+Arguments:
+
+  site path  Path to site's root or config file
+
+Options:
+
+  -h, --help  Show this help
+HELP
 }
 
 main "$@"

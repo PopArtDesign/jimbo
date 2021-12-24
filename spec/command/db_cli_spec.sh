@@ -21,4 +21,18 @@ Describe 'jimbo db:cli'
         The status should be failure
         The error should include 'Too many arguments. Expected: 1'
     End
+
+    It 'shows help message if -h option specified'
+        When call jimbo db:cli -h
+
+        The status should be success
+        The output should start with 'Launch database client'
+    End
+
+    It 'shows help message if --help option specified'
+        When call jimbo db:cli --help
+
+        The status should be success
+        The output should start with 'Launch database client'
+    End
 End
