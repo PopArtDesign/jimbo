@@ -30,7 +30,7 @@ Describe 'app::site::load_main_config'
         The value "${site_config[database_dump_suffix]}" should equal '-dump.sql'
     End
 
-    Context 'site root provided'
+    Context 'when site root provided'
         It 'sets canonicalized site root path'
             site_root="$(realpath ./fixture)"
 
@@ -41,7 +41,7 @@ Describe 'app::site::load_main_config'
         End
     End
 
-    Context 'main config file provided'
+    Context 'when main config file provided'
         It 'fails if main config file is not readable'
             not_readable="$(umask 777 && mktemp --suffix .conf)"
 
