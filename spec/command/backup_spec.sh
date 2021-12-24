@@ -22,6 +22,13 @@ Describe 'jimbo backup'
         The error should include 'Too many arguments. Expected: 2'
     End
 
+    It 'fails when backup file has no .zip extension'
+        When call jimbo backup my-site my-backup
+
+        The status should be failure
+        The error should match pattern '*Backup file must have .zip extension: */my-backup*'
+    End
+
     It 'fails when backup file already exists'
         When call jimbo backup ./lib ./fixture/empty.zip
 

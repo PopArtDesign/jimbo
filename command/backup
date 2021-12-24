@@ -41,6 +41,10 @@ main() {
     local site_path="${1}"
     local backup_file="$(realpath "${2}")"
 
+    if ! [[ "${backup_file}" == *.zip ]]; then
+        app::error::error "Backup file must have .zip extension: ${backup_file}"
+    fi
+
     if [[ -e "${backup_file}" ]]; then
         app::error::error "Backup file already exists: ${backup_file}"
     fi
