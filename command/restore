@@ -13,7 +13,7 @@ main() {
         case "${1}" in
             -h | --help ) opt_help=true ;;
             -- ) shift && break ;;
-            -* ) app::error::unknown_option "${1}" ;;
+            -?* ) app::error::unknown_option "${1}" ;;
             * ) break
         esac
 
@@ -45,8 +45,6 @@ main() {
     local site_path="${1}"
     local backup_file="$(realpath "${2}")"
 
-    printf '\nProcessing... This may take a while.\n\n'
-
     app_restore_site_files
 
     local -A site_config=(
@@ -65,6 +63,10 @@ app_restore_site_files() {
 
     app::site::load_main_config "${site_path}" 'main'
 
+    if [[ "${site_path}" == '-' || "${site_path}" == '/dev/stdin' ]]; then
+        site_path="${site_config[root]}"
+    fi
+
     if ! [[ -d "${site_config[root]}" ]]; then
         app::error::error "Site path not exists or not a directory: ${site_config[root]}"
     fi
@@ -76,6 +78,8 @@ app_restore_site_files() {
     if ! [[ -w "${site_config[root]}" ]]; then
         app::error::error "Site path is not writable: ${site_config[root]}"
     fi
+
+    printf '\nProcessing... This may take a while.\n\n'
 
     command unzip -qd "${site_config[root]}" "${backup_file}"
 }

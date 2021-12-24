@@ -13,7 +13,7 @@ main() {
         case "${1}" in
             -h | --help ) opt_help=true ;;
             -- ) shift && break ;;
-            -* ) app::error::unknown_option "${1}" ;;
+            -?* ) app::error::unknown_option "${1}" ;;
             * ) break
         esac
 

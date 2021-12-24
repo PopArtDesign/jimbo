@@ -3,10 +3,6 @@ app::use 'plugin'
 app::use 'util'
 
 app::site::load_site_config() {
-    if [[ $# -eq 0 ]]; then
-        app::error::error "${FUNCNAME}: site path required"
-    fi
-
     app::site::load_main_config "${1}"
 
     app::site::load_local_config
@@ -15,7 +11,11 @@ app::site::load_site_config() {
 }
 
 app::site::load_main_config() {
-    local site_path="${1}"
+    local site_path="${1:-/dev/stdin}"
+
+    if [[ "${site_path}" == '-' ]]; then
+        site_path='/dev/stdin'
+    fi
 
     if ! [[ -e "${site_path}" ]]; then
         app::error::error "Site root or config file not exists: ${site_path}"
