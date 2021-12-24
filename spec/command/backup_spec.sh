@@ -28,4 +28,18 @@ Describe 'jimbo backup'
         The status should be failure
         The error should match pattern '*Backup file already exists: */fixture/empty.zip*'
     End
+
+    It 'shows help message if -h option specified'
+        When call jimbo backup -h
+
+        The status should be success
+        The output should start with 'Backups site'
+    End
+
+    It 'shows help message if --help option specified'
+        When call jimbo backup --help
+
+        The status should be success
+        The output should start with 'Backups site'
+    End
 End
