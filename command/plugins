@@ -23,14 +23,14 @@ main() {
         shift
     done
 
-    if [[ $# -gt 0 ]]; then
-        app::error::too_many_arguments 0
-    fi
-
     if [[ "${opt_help}" == 'true' ]]; then
         app_help
 
         exit 0
+    fi
+
+    if [[ $# -gt 0 ]]; then
+        app::error::too_many_arguments 0
     fi
 
     if [[ "${opt_paths}" == 'true' ]]; then
@@ -64,7 +64,7 @@ app_help() {
     local app_command="${0##*/}"
 
     cat <<HELP
-Shows available plugins
+Show available plugins
 
 Usage:
 

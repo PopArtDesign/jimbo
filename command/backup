@@ -108,7 +108,7 @@ app_help() {
     local app_command="${0##*/}"
 
     cat <<HELP
-Backups site
+Backup site
 
 Usage:
 
@@ -124,6 +124,5 @@ Options:
   -h, --help  Show this help
 HELP
 }
-
 
 main "$@"

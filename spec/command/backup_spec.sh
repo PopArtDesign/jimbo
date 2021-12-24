@@ -33,13 +33,13 @@ Describe 'jimbo backup'
         When call jimbo backup -h
 
         The status should be success
-        The output should start with 'Backups site'
+        The output should start with 'Backup site'
     End
 
     It 'shows help message if --help option specified'
         When call jimbo backup --help
 
         The status should be success
-        The output should start with 'Backups site'
+        The output should start with 'Backup site'
     End
 End

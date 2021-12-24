@@ -9,11 +9,3 @@ app::command::commands_list() {
         echo "${cmd##*/}"
     done | sort
 }
-
-app::command::available_commands() {
-    printf 'Available commands:\n\n'
-
-    for cmd in $(app::command::commands_list); do
-        printf '  %s\n' "${cmd}"
-    done
-}

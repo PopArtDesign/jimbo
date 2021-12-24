@@ -19,14 +19,14 @@ Describe 'jimbo plugins'
         When call jimbo plugins -h
 
         The status should be success
-        The output should start with 'Shows available plugins'
+        The output should start with 'Show available plugins'
     End
 
     It 'shows help message if --help option specified'
         When call jimbo plugins --help
 
         The status should be success
-        The output should start with 'Shows available plugins'
+        The output should start with 'Show available plugins'
     End
 
     It 'shows plugins list'
