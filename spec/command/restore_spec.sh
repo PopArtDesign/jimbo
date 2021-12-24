@@ -35,4 +35,18 @@ Describe 'jimbo restore'
         The status should be failure
         The error should match pattern '*Backup file not exists or not readable: */i/hope/this/file/not/exists.zip*'
     End
+
+    It 'shows help message if -h option specified'
+        When call jimbo restore -h
+
+        The status should be success
+        The output should start with 'Restore site'
+    End
+
+    It 'shows help message if --help option specified'
+        When call jimbo restore --help
+
+        The status should be success
+        The output should start with 'Restore site'
+    End
 End
