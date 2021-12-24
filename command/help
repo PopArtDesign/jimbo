@@ -4,7 +4,6 @@ source "${app_common}"
 
 app::use 'command'
 app::use 'error'
-app::use 'util'
 
 main() {
     while [[ $# -gt 0 ]]; do
@@ -21,13 +20,44 @@ main() {
         app::error::too_many_arguments 0
     fi
 
+    local app_command="${0##*/}"
+
     cat <<HELP
 ${app_name}: simple backup tool for web sites (Joomla, Wordpress & etc.).
 
-$(app::util::usage '<command> [opts]')
+Usage:
 
-$(app::command::available_commands)
+  ${app_name} <command> [options]
+
+$(app_available_commands)
 HELP
+}
+
+app_available_commands() {
+    local -A commands=([help]='Show this help')
+    local -i maxlen=0
+    local cmd
+
+    for cmd in $(app::command::commands_list); do
+        if [[ "${#cmd}" -gt "${maxlen}" ]]; then
+            maxlen="${#cmd}"
+        fi
+        [[ "${cmd}" == 'help' ]] && continue
+
+        commands["${cmd}"]="$(app_command_desc "${cmd}")"
+    done
+
+    echo $'Available commands:\n'
+
+    local format="  %-${maxlen}s  %s\n"
+
+    for cmd in "${!commands[@]}"; do
+        printf "${format}" "${cmd}" "${commands["${cmd}"]}"
+    done | sort
+}
+
+app_command_desc() {
+    command grep -F -m 1 -A 1 '<<HELP' "${app_commands_path}/${1}" | tail -n 1
 }
 
 main "$@"
