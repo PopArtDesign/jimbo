@@ -21,3 +21,12 @@ app::util::realpath() {
 
     (cd "${working_dir}" && command realpath "${opts[@]}" "$@")
 }
+
+app::util::confirm() {
+    local reply='n'
+    local message="${1:-'Sure?'}"
+
+    read -r -p "${message} [y/n] " reply
+
+    [[ "${reply}" == 'y' ]]
+}

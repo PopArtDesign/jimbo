@@ -5,6 +5,7 @@ source "${app_common}"
 app::use 'database'
 app::use 'error'
 app::use 'site'
+app::use 'util'
 
 main() {
     local opt_help=false
@@ -45,13 +46,17 @@ main() {
     local site_path="${1}"
     local backup_file="$(realpath "${2}")"
 
-    app_restore_site_files
-
     local -A site_config=(
         [backup_file]="${backup_file}"
     )
 
-    app::site::load_site_config "${site_path}"
+    app::site::load_main_config "${site_path}"
+
+    app_restore_site_files
+
+    app::site::load_local_config
+
+    app::site::load_plugin_config
 
     printf 'Site: %s\n' "${site_config[root]}"
     printf 'Plugin: %s\n' "${site_config[plugin]}"
@@ -62,14 +67,6 @@ main() {
 }
 
 app_restore_site_files() {
-    local -A site_config=()
-
-    app::site::load_main_config "${site_path}" 'main'
-
-    if [[ "${site_path}" == '-' || "${site_path}" == '/dev/stdin' ]]; then
-        site_path="${site_config[root]}"
-    fi
-
     if ! [[ -d "${site_config[root]}" ]]; then
         app::error::error "Site path not exists or not a directory: ${site_config[root]}"
     fi
@@ -88,10 +85,7 @@ app_restore_site_files() {
 }
 
 app_restore_site_database() {
-    local site_path="${site_config[root]}"
-    local dump_file_suffix="${site_config[database_dump_suffix]}"
-
-    local -a dump_files=("${site_path}/"*"${dump_file_suffix}")
+    local -a dump_files=("${site_config[root]}/"*"${site_config[database_dump_suffix]}")
 
     [[ "${#dump_files[@]}" -eq 0 ]] && return
 
@@ -101,9 +95,9 @@ app_restore_site_database() {
 
     dump="$(realpath "${dump_files[0]}")"
 
-    read -r -p "Database dump found: ${dump##*/}. Load? [y/n] "
-
-    [[ "${REPLY}" != 'y' ]] && return
+    if ! app::util::confirm "Database dump found: \"${dump##*/}\". Load?"; then
+        return
+    fi
 
     app::database::cli < "${dump}"
 
