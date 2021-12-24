@@ -43,7 +43,7 @@ Describe 'app::site::load_main_config'
 
     Context 'when main config file provided'
         It 'fails if main config file is not readable'
-            not_readable="$(umask 777 && mktemp --suffix .conf)"
+            not_readable="$(umask 777 && TMPDIR="${SHELLSPEC_TMPBASE}" mktemp --suffix '.conf')"
 
             When run app::site::load_main_config "${not_readable}"
 
