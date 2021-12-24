@@ -27,7 +27,7 @@ Describe 'app::site::load_main_config'
 
         The status should be success
         The value "${site_config[local_config_file_suffix]}" should equal '.jimbo.conf'
-        The value "${site_config[database_dump_suffix]}" should equal '-dump.sql'
+        The value "${site_config[database_dump_suffix]}" should equal '.dump.sql'
     End
 
     Context 'when site root provided'
