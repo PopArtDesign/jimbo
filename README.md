@@ -21,6 +21,10 @@ sudo git clone --depth=1 https://github.com/PopArtDesign/jimbo /opt/jimbo && sud
 
 ## Usage
 
+Jimbo backups all site's data into a one `.zip` archive. Thanks to it's [plugins](./plugin) it can detect site's configuration like database, cache folders and etc. and include or exclude some data from the final backup.
+
+In simple case you can just run:
+
 ```sh
 jimbo backup /path/to/site /path/to/backup.zip
 ```
