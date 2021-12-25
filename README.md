@@ -35,6 +35,31 @@ To get more information about available commands try `--help`
 jimbo --help
 ```
 
+### Local config file (`.jimbo.conf`)
+
+To customize site backup process you could create a special config file in your site's root folder:
+
+```sh
+#
+# The prefix 'xA4di35ie' added for security reasons, 
+# because site's root can be publicly available from the web.
+# You can use any prefix you want.
+#
+
+cat > xA4di35ie.jimbo.conf <<CONFIG
+# Also available: 'wordpress' and 'joomla'
+# Try "jimbo plugins" to see all available plugins
+plugin: default
+
+exclude: .git/* .zip
+
+# Jimbo can backup only one database
+database_name: dbname
+database_user: dbuser
+database_password: dbpass
+CONFIG
+```
+
 ## Uninstall
 
 Local (`~/.local`):
