@@ -37,13 +37,13 @@ jimbo --help
 
 ### Local config file (`.jimbo.conf`)
 
-To customize site backup process you could create a special config file in your site's root folder:
+To customize site backup process you can create a special config file in your site's root folder:
 
 ```sh
 #
 # The prefix 'xA4di35ie' added for security reasons, 
 # because site's root can be publicly available from the web.
-# You can use any prefix you want.
+# You can use any prefix you want or just omit it.
 #
 
 cat > xA4di35ie.jimbo.conf <<CONFIG
@@ -58,6 +58,24 @@ database_name: dbname
 database_user: dbuser
 database_password: dbpass
 CONFIG
+```
+
+### Main config file
+
+If you don't want to store Jimbo's config in your site's root, you can create config file outside:
+
+```sh
+cat > /etc/jimbo/mysite.conf <<CONFIG
+root: /var/www/mysite
+plugin: default
+include: index.html upload/*
+CONFIG
+```
+
+Then you should specify path to config file instead of site's root:
+
+```sh
+jimbo backup /etc/jimbo/mysite.conf mysite.zip
 ```
 
 ## Uninstall
