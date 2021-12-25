@@ -114,6 +114,30 @@ Describe 'jimbo backup'
         The result of "backup_content()" should equal 'index.html'
     End
 
+    It 'allows to include some of excluded files'
+        backup_file="$(backup_file_name)"
+
+        Data:expand
+            #|root: ${SHELLSPEC_PROJECT_ROOT}/fixture/joomla-site
+            #|plugin: default
+            #|local_config_file_suffix:
+            #|exclude: /cache/* /tmp/* /administrator/cache/*
+            #|include: */index.html
+        End
+
+        When call jimbo backup /dev/stdin "${backup_file}"
+
+        files="$(backup_content)"
+
+        The status should be success
+        The output should end with "Done: ${backup_file}"
+        The file "${backup_file}" should be file
+        The value "${files}" should not include 'ignore-this-file'
+        The value "${files}" should include 'tmp/index.html'
+        The value "${files}" should include 'cache/index.html'
+        The value "${files}" should include 'administrator/cache/index.html'
+    End
+
     It "allows to backup site's database"
         backup_file="$(backup_file_name)"
 
