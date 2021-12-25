@@ -39,7 +39,7 @@ main() {
     fi
 
     local site_path="${1}"
-    local backup_file="$(realpath "${2}")"
+    local backup_file="$(realpath -qm "${2}")"
 
     if ! [[ "${backup_file}" == *.zip ]]; then
         app::error::error "Backup file must have .zip extension: ${backup_file}"
@@ -60,11 +60,17 @@ main() {
 
     echo 'Processing... This may take a while.'
 
+    app_create_backup_file
+
     app_backup_site_files
 
     app_backup_site_database
 
     printf 'Done: %s\n' "${backup_file}"
+}
+
+app_create_backup_file() {
+    : | command zip -q "${backup_file}" - && command zip -qd "${backup_file}" -
 }
 
 app_backup_site_files() {
@@ -108,7 +114,8 @@ app_backup_site_database() {
 }
 
 app_zip() {
-    command zip -qur "-${COMPRESSION_LEVEL:-9}" "$@"
+    # Ignore exit code 12: zip has nothing to do
+    command zip -qur "-${COMPRESSION_LEVEL:-9}" "$@" || [[ "$?" -eq 12 ]]
 }
 
 app_help() {

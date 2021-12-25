@@ -58,6 +58,19 @@ Describe 'jimbo backup'
         The output should start with 'Backup site'
     End
 
+    It "creates empty backup file if site's root is empty"
+        empty_dir="$(TMPDIR="${SHELLSPEC_TMPBASE}" mktemp -d)"
+
+        backup_file="$(backup_file_name)"
+
+        When call jimbo backup "${empty_dir}" "${backup_file}"
+
+        The status should be success
+        The output should end with "Done: ${backup_file}"
+        The file "${backup_file}" should be file
+        The result of "backup_content()" should include 'Empty zipfile.'
+    End
+
     It "backups all site's files if no configuration provided"
         backup_file="$(backup_file_name)"
 
@@ -104,6 +117,10 @@ Describe 'jimbo backup'
     It "allows to backup site's database"
         backup_file="$(backup_file_name)"
 
+        Mock mysqldump
+            echo 'dump'
+        End
+
         Data:expand
             #|root: ${SHELLSPEC_PROJECT_ROOT}/fixture/simple-site
             #|database_name: simple
@@ -112,8 +129,29 @@ Describe 'jimbo backup'
             #|database_dump_suffix: .dump.sql
         End
 
+        When call jimbo backup /dev/stdin "${backup_file}"
+
+        The status should be success
+        The output should end with "Done: ${backup_file}"
+        The file "${backup_file}" should be file
+        The result of "backup_content()" should include '.dump.sql'
+    End
+
+    It "backups only database if site's root is empty"
+        empty_dir="$(TMPDIR="${SHELLSPEC_TMPBASE}" mktemp -d)"
+
+        backup_file="$(backup_file_name)"
+
         Mock mysqldump
             echo 'dump'
+        End
+
+        Data:expand
+            #|root: ${empty_dir}
+            #|database_name: simple
+            #|database_user: simple
+            #|database_password: simple
+            #|database_dump_suffix: .dump.sql
         End
 
         When call jimbo backup /dev/stdin "${backup_file}"
@@ -121,6 +159,6 @@ Describe 'jimbo backup'
         The status should be success
         The output should end with "Done: ${backup_file}"
         The file "${backup_file}" should be file
-        The result of "backup_content()" should include '.dump.sql'
+        The result of "backup_content()" should match pattern '*.dump.sql'
     End
 End
