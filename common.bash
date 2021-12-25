@@ -1,5 +1,5 @@
 set -euo pipefail
-shopt -s lastpipe nullglob
+shopt -s lastpipe nullglob dotglob
 
 declare -gA app_libs_loaded=()
 
