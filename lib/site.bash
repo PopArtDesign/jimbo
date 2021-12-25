@@ -23,7 +23,7 @@ app::site::load_main_config() {
 
     site_path="$(app::util::realpath "${site_path}")"
 
-    site_config[local_config_file_suffix]='.jimbo.conf'
+    site_config[local_config_file_suffix]='.rambo.conf'
     site_config[database_dump_suffix]='.dump.sql'
 
     if [[ -d "${site_path}" ]]; then

@@ -1,7 +1,7 @@
-# Jimbo
+# Rambo: first backup
 
-[![CI](https://github.com/PopArtDesign/jimbo/actions/workflows/ci.yaml/badge.svg)](https://github.com/PopArtDesign/jimbo/actions/workflows/ci.yaml)
-[![GitHub license](https://img.shields.io/github/license/PopArtDesign/jimbo)](https://github.com/PopArtDesign/jimbo/blob/main/LICENSE)
+[![CI](https://github.com/PopArtDesign/rambo/actions/workflows/ci.yaml/badge.svg)](https://github.com/PopArtDesign/rambo/actions/workflows/ci.yaml)
+[![GitHub license](https://img.shields.io/github/license/PopArtDesign/rambo)](https://github.com/PopArtDesign/rambo/blob/main/LICENSE)
 
 Simple backup tool for web sites (Joomla!, WordPress and etc.)
 
@@ -10,32 +10,32 @@ Simple backup tool for web sites (Joomla!, WordPress and etc.)
 Local (`~/.local`):
 
 ```sh
-git clone --depth=1 https://github.com/PopArtDesign/jimbo ~/.local/lib/jimbo && ln -s ~/.local/lib/jimbo/bin/jimbo ~/.local/bin/jimbo
+git clone --depth=1 https://github.com/PopArtDesign/rambo ~/.local/lib/rambo && ln -s ~/.local/lib/rambo/bin/rambo ~/.local/bin/rambo
 ```
 
 Global (`/opt`):
 
 ```sh
-sudo git clone --depth=1 https://github.com/PopArtDesign/jimbo /opt/jimbo && sudo ln -s /opt/jimbo/bin/jimbo /usr/local/bin/jimbo
+sudo git clone --depth=1 https://github.com/PopArtDesign/rambo /opt/rambo && sudo ln -s /opt/rambo/bin/rambo /usr/local/bin/rambo
 ```
 
 ## Usage
 
-Jimbo backups all site's data into a one `.zip` archive. Thanks to it's [plugins](./plugin) it can detect site's configuration like database, cache folders and etc. and include or exclude some data from the final backup.
+Rambo backups all site's data into a one `.zip` archive. Thanks to it's [plugins](./plugin) it can detect site's configuration like database, cache folders and etc. and include or exclude some data from the final backup.
 
 In simple case you can just run:
 
 ```sh
-jimbo backup /path/to/site /path/to/backup.zip
+rambo backup /path/to/site /path/to/backup.zip
 ```
 
 To get more information about available commands try `--help`
 
 ```sh
-jimbo --help
+rambo --help
 ```
 
-### Local config file (`.jimbo.conf`)
+### Local config file (`.rambo.conf`)
 
 To customize site backup process you can create a special config file in your site's root folder:
 
@@ -46,14 +46,14 @@ To customize site backup process you can create a special config file in your si
 # You can use any prefix you want or just omit it.
 #
 
-cat > xA4di35ie.jimbo.conf <<CONFIG
+cat > xA4di35ie.rambo.conf <<CONFIG
 # Also available: 'wordpress' and 'joomla'
-# Try "jimbo plugins" to see all available plugins
+# Try "rambo plugins" to see all available plugins
 plugin: default
 
 exclude: .git/* .zip
 
-# Jimbo can backup only one database
+# Rambo can backup only one database
 database_name: dbname
 database_user: dbuser
 database_password: dbpass
@@ -62,10 +62,10 @@ CONFIG
 
 ### Main config file
 
-If you don't want to store Jimbo's config in your site's root, you can create config file outside:
+If you don't want to store Rambo's config in your site's root, you can create config file outside:
 
 ```sh
-cat > /etc/jimbo/mysite.conf <<CONFIG
+cat > /etc/rambo/mysite.conf <<CONFIG
 root: /var/www/mysite
 plugin: default
 include: index.html upload/*
@@ -75,7 +75,7 @@ CONFIG
 Then you should specify path to config file instead of site's root:
 
 ```sh
-jimbo backup /etc/jimbo/mysite.conf mysite.zip
+rambo backup /etc/rambo/mysite.conf mysite.zip
 ```
 
 ## Uninstall
@@ -83,13 +83,13 @@ jimbo backup /etc/jimbo/mysite.conf mysite.zip
 Local (`~/.local`):
 
 ```sh
-unlink ~/.local/bin/jimbo; rm -rf ~/.local/lib/jimbo
+unlink ~/.local/bin/rambo; rm -rf ~/.local/lib/rambo
 ```
 
 Global (`/opt`):
 
 ```sh
-sudo unlink /usr/local/bin/jimbo; sudo rm -rf /opt/jimbo
+sudo unlink /usr/local/bin/rambo; sudo rm -rf /opt/rambo
 ```
 
 ## License

@@ -1,6 +1,6 @@
 #shellcheck shell=bash
 
-app_name=jimbo
+app_name=rambo
 app_libs_path=./lib
 
 Include ./common.bash
@@ -26,7 +26,7 @@ Describe 'app::site::load_main_config'
         When call app::site::load_main_config './fixture'
 
         The status should be success
-        The value "${site_config[local_config_file_suffix]}" should equal '.jimbo.conf'
+        The value "${site_config[local_config_file_suffix]}" should equal '.rambo.conf'
         The value "${site_config[database_dump_suffix]}" should equal '.dump.sql'
     End
 
@@ -168,10 +168,10 @@ CONFIG
             #|foo: bar
         End
 
-        When run app::site::load_config '/usr/local/etc/jimbo/cool-site.conf' 'main'
+        When run app::site::load_config '/usr/local/etc/rambo/cool-site.conf' 'main'
 
         The status should be failure
-        The error should include '/usr/local/etc/jimbo/cool-site.conf: invalid key: foo'
+        The error should include '/usr/local/etc/rambo/cool-site.conf: invalid key: foo'
     End
 
     It "doesn't allow \"root\" key in plugin config"
@@ -200,7 +200,7 @@ CONFIG
 
     It "doesn't allow \"local_config_file_suffix\" key in plugin config"
         Data:raw
-            #|local_config_file_suffix: xxx.jimbo.conf
+            #|local_config_file_suffix: xxx.rambo.conf
             #|exclude: *
         End
 
@@ -216,10 +216,10 @@ CONFIG
             #|exclude: .git
         End
 
-        When run app::site::load_config '/var/www/mysite/xxx.jimbo.conf' 'local'
+        When run app::site::load_config '/var/www/mysite/xxx.rambo.conf' 'local'
 
         The status should be failure
-        The error should include '/var/www/mysite/xxx.jimbo.conf: key "root" allowed only in main config file'
+        The error should include '/var/www/mysite/xxx.rambo.conf: key "root" allowed only in main config file'
     End
 
     It "doesn't allow \"local_config_file_suffix\" key in local config file"
@@ -228,9 +228,9 @@ CONFIG
             #|local_config_file_suffix: *.jumbo.conf
         End
 
-        When run app::site::load_config '/var/www/mysite/xxx.jimbo.conf' 'local'
+        When run app::site::load_config '/var/www/mysite/xxx.rambo.conf' 'local'
 
         The status should be failure
-        The error should include '/var/www/mysite/xxx.jimbo.conf: key "local_config_file_suffix" allowed only in main config file'
+        The error should include '/var/www/mysite/xxx.rambo.conf: key "local_config_file_suffix" allowed only in main config file'
     End
 End

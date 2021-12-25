@@ -37,7 +37,7 @@ Describe 'WordPress plugin'
             echo 'dump'
         End
 
-        When call jimbo backup ./fixture/wordpress-site "${backup_file}"
+        When call rambo backup ./fixture/wordpress-site "${backup_file}"
 
         The status should be success
         The result of "backup_content()" should not include 'ignore-this-file'
