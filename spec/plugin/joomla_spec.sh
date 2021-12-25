@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 backup_file_name() {
     TMPDIR="${SHELLSPEC_TMPBASE}" mktemp --dry-run --suffix '.zip'
 }
