@@ -41,6 +41,7 @@ Describe 'Joomla plugin'
         When call jimbo backup ./fixture/joomla-site "${backup_file}"
 
         The status should be success
+        The file "${backup_file}" should be file
         The result of "backup_content()" should not include 'ignore-this-file'
     End
 
@@ -53,9 +54,13 @@ Describe 'Joomla plugin'
 
         When call jimbo backup ./fixture/joomla-site "${backup_file}"
 
+        files="$(backup_content)"
+
         The status should be success
-        The result of "backup_content()" should include 'tmp/index.html'
-        The result of "backup_content()" should include 'cache/index.html'
-        The result of "backup_content()" should include 'administrator/cache/index.html'
+        The output should end with "Done: ${backup_file}"
+        The file "${backup_file}" should be file
+        The value "${files}" should include 'tmp/index.html'
+        The value "${files}" should include 'cache/index.html'
+        The value "${files}" should include 'administrator/cache/index.html'
     End
 End
